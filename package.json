@@ -1,0 +1,21 @@
+{
+  "name": "@cco/monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "bun --filter '*' build",
+    "test": "bun --filter '*' test",
+    "dev": "bun --filter '*' dev",
+    "lint": "bun --filter '*' lint",
+    "type-check": "bun --filter '*' type-check"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.3.0",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.0"
+  }
+}
