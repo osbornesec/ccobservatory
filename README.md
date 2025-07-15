@@ -266,32 +266,29 @@ export const productionConfig = {
 
 ```bash
 # Core development commands
-bun run dev:all          # Start all services concurrently
+bun run dev              # Start all services concurrently with parallel output
+bun run dev:all          # Start all services with individual terminals
 bun run dev:backend      # Start backend with hot reload
 bun run dev:frontend     # Start frontend dev server
+bun run dev:cli          # Start CLI development
+
+# Building
+bun run build            # Build all packages and apps
+bun run build:packages   # Build packages only
+bun run build:apps       # Build applications only
 
 # Testing
-bun run test:unit        # Run unit tests for all packages
-bun run test:integration # Run integration tests
-bun run test:e2e        # Run end-to-end tests
-bun run test:performance # Run performance benchmarks
-
-# Build and deployment
-bun run build:production # Build optimized production bundles
-bun run package:desktop  # Package Electron desktop app
-bun run package:extension # Package VS Code extension
-
-# Database operations
-bun run db:init          # Initialize database schema
-bun run db:migrate       # Run pending migrations
-bun run db:backup        # Create database backup
-bun run db:analyze       # Analyze and optimize database
+bun run test             # Run tests for all packages
+bun run type-check       # TypeScript type checking across all packages
 
 # Code quality
-bun run lint            # Run ESLint
-bun run format          # Run Prettier
-bun run typecheck       # TypeScript type checking
-bun run audit           # Security audit
+bun run lint             # Run ESLint across all packages
+
+# Maintenance
+bun run clean            # Clean dist and node_modules
+bun run clean:dist       # Clean build artifacts only
+bun run clean:node_modules # Clean dependencies only
+bun run reset            # Clean everything and reinstall
 ```
 
 ### Core Components
