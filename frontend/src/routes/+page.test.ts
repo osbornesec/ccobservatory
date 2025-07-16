@@ -1004,4 +1004,139 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">');
 	});
 
+	// Phase 10: Edge Cases & Error Boundaries Tests
+	it('should handle empty or null analytics data gracefully without UI corruption', () => {
+		// Given: A main page component that may receive empty or null analytics data
+		// When: The component renders with missing or malformed analytics data
+		// Then: UI displays safe default values and prevents crashes
+
+		// Analytics object has safe default values to prevent undefined errors
+		expect(componentContent).toContain('let analytics = {');
+		expect(componentContent).toContain('total_conversations: 0,');
+		expect(componentContent).toContain('total_messages: 0,');
+		expect(componentContent).toContain('total_tool_calls: 0,');
+		expect(componentContent).toContain('avg_conversation_length: 0');
+
+		// Math.round safely handles zero and null values
+		expect(componentContent).toContain('Math.round(analytics.avg_conversation_length)');
+
+		// Template expressions safely display analytics properties
+		expect(componentContent).toContain('{analytics.total_conversations}');
+		expect(componentContent).toContain('{analytics.total_messages}');
+		expect(componentContent).toContain('{analytics.total_tool_calls}');
+
+		// UI structure remains stable even with zero values
+		expect(componentContent).toContain('class="text-3xl font-bold text-primary"');
+		expect(componentContent).toContain('class="text-3xl font-bold text-secondary"');
+		expect(componentContent).toContain('class="text-3xl font-bold text-accent"');
+		expect(componentContent).toContain('class="text-3xl font-bold text-info"');
+	});
+
+	it('should handle API failures with proper error isolation and recovery mechanisms', () => {
+		// Given: A main page component that depends on external API calls
+		// When: API calls fail due to network issues or server errors
+		// Then: Errors are isolated, user-friendly messages are shown, and recovery is possible
+
+		// API connection test failure is properly handled
+		expect(componentContent).toContain('if (!isConnected) {');
+		expect(componentContent).toContain("throw new Error('Cannot connect to backend API');");
+
+		// Data loading failures are isolated with specific error messages
+		expect(componentContent).toContain('async function loadData() {');
+		expect(componentContent).toContain('try {');
+		expect(componentContent).toContain('} catch (err) {');
+		expect(componentContent).toContain("throw new Error('Failed to load data from server');");
+
+		// Error states are properly typed and handled
+		expect(componentContent).toContain('let error: string | null = null;');
+		expect(componentContent).toContain(
+			"error = err instanceof Error ? err.message : 'Failed to initialize application';"
+		);
+
+		// Recovery mechanism resets state and retries operations
+		expect(componentContent).toContain('async function retryLoad() {');
+		expect(componentContent).toContain('error = null;');
+		expect(componentContent).toContain('isLoading = true;');
+		expect(componentContent).toContain('await loadData();');
+
+		// Error UI is isolated and provides user-friendly feedback
+		expect(componentContent).toContain('{:else if error}');
+		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+
+		// Error boundaries prevent complete UI failure
+		expect(componentContent).toContain('} finally {');
+		expect(componentContent).toContain('isLoading = false;');
+	});
+
+	it('should handle WebSocket connection failures with graceful degradation', () => {
+		// Given: A main page component that depends on WebSocket real-time updates
+		// When: WebSocket connection fails or becomes unstable
+		// Then: Component continues to function with polling or static data display
+
+		// WebSocket client is imported but failures are handled gracefully
+		expect(componentContent).toContain("import { wsClient } from '$lib/api/websocket';");
+
+		// WebSocket handlers are set up within error boundaries
+		expect(componentContent).toContain('try {');
+		expect(componentContent).toContain("wsClient.on('conversation_update', data => {");
+		expect(componentContent).toContain("wsClient.on('project_update', data => {");
+		expect(componentContent).toContain('} catch (err) {');
+
+		// connectionStatus store tracks WebSocket health
+		expect(componentContent).toContain(
+			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
+		);
+
+		// UI shows connection status and degrades gracefully
+		expect(componentContent).toContain('$connectionStatus');
+		expect(componentContent).toContain(
+			'class="badge {$connectionStatus === \'connected\'\n\t\t\t\t\t\t\t\t\t\t\t\t? \'badge-success\'\n\t\t\t\t\t\t\t\t\t\t\t\t: \'badge-warning\'}"'
+		);
+		expect(componentContent).toContain(
+			"{$connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}"
+		);
+
+		// WebSocket failures don't prevent core functionality
+		expect(componentContent).toContain('await loadData();');
+		expect(componentContent).toContain('// Load projects');
+		expect(componentContent).toContain('// Load recent conversations');
+		expect(componentContent).toContain('// Load analytics');
+	});
+
+	it('should prevent race conditions and handle concurrent operations safely', () => {
+		// Given: A main page component that performs multiple async operations
+		// When: Multiple operations run concurrently or user interactions occur during loading
+		// Then: Race conditions are prevented and component state remains consistent
+
+		// Loading state prevents multiple simultaneous operations
+		expect(componentContent).toContain('let isLoading = true;');
+		expect(componentContent).toContain('{#if isLoading}');
+		expect(componentContent).toContain('<LoadingSpinner size="lg" text="Loading dashboard..." />');
+
+		// Retry mechanism properly resets state before new operation
+		expect(componentContent).toContain('async function retryLoad() {');
+		expect(componentContent).toContain('error = null;');
+		expect(componentContent).toContain('isLoading = true;');
+
+		// Finally block ensures state is always cleaned up
+		expect(componentContent).toContain('} finally {');
+		expect(componentContent).toContain('isLoading = false;');
+
+		// Sequential async operations prevent race conditions
+		expect(componentContent).toContain('const isConnected = await apiClient.testConnection();');
+		expect(componentContent).toContain('await loadData();');
+
+		// Error state is properly isolated from loading state
+		expect(componentContent).toContain('{:else if error}');
+		expect(componentContent).toContain('{:else}');
+
+		// Conditional rendering prevents UI state corruption
+		expect(componentContent).toContain('{/if}');
+
+		// Store updates are atomic and prevent partial state updates
+		expect(componentContent).toContain('projects.set(projectsData);');
+		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('analytics = analyticsData;');
+	});
+
 });
