@@ -1,8 +1,9 @@
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 
 export default defineConfig(({ mode }) => ({
-	plugins: mode === 'test' ? [] : [sveltekit()],
+	plugins: mode === 'test' ? [svelte({ hot: !process.env.VITEST })] : [sveltekit()],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		exclude: ['tests/e2e/**'],

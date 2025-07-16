@@ -91,7 +91,7 @@
 		<main class="flex-1 overflow-auto">
 			{#if isLoading}
 				<div class="flex items-center justify-center h-full">
-					<LoadingSpinner size="lg" text="Loading dashboard..." />
+					<LoadingSpinner size="lg" />
 				</div>
 			{:else if error}
 				<div class="p-8">
