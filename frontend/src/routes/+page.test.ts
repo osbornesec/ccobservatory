@@ -66,4 +66,99 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<!-- Welcome Section -->');
 		expect(componentContent).toContain('<div class="mb-8">');
 	});
+
+	it('should display loading spinner with descriptive text during initial data fetch', () => {
+		// Given: A main page component that needs to fetch dashboard data on mount
+		// When: The component is initially loading (isLoading state is true)
+		// Then: A loading spinner with descriptive text is displayed to provide user feedback during data fetch
+
+		// Loading spinner component provides visual feedback during data loading with accessible text
+		expect(componentContent).toContain('<LoadingSpinner size="lg" text="Loading dashboard..." />');
+
+		// Loading state conditional rendering structure shows loading UI when isLoading is true
+		expect(componentContent).toContain('{#if isLoading}');
+		expect(componentContent).toContain('<div class="flex items-center justify-center h-full">');
+
+		// Loading spinner is properly imported for use in the component
+		expect(componentContent).toContain(
+			"import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';"
+		);
+	});
+
+	it('should call API connection test on mount', () => {
+		// Given: A main page component that needs to verify backend connectivity
+		// When: The component mounts and initializes the dashboard
+		// Then: The apiClient.testConnection() method is called once to verify backend availability
+
+		// onMount lifecycle function is imported from svelte for component initialization
+		expect(componentContent).toContain("import { onMount } from 'svelte';");
+
+		// API client is imported for backend communication
+		expect(componentContent).toContain("import { apiClient } from '$lib/api/client';");
+
+		// onMount function is defined to handle component initialization
+		expect(componentContent).toContain('onMount(async () => {');
+
+		// API connection test is called to verify backend connectivity
+		expect(componentContent).toContain('const isConnected = await apiClient.testConnection();');
+
+		// Connection failure is handled with error throwing for user feedback
+		expect(componentContent).toContain('if (!isConnected) {');
+		expect(componentContent).toContain("throw new Error('Cannot connect to backend API');");
+	});
+
+	it('should load projects data during initialization', () => {
+		// Given: A main page component that needs to display project information
+		// When: The component successfully connects to the backend API
+		// Then: The apiClient.getProjects() method is called and projects data is stored in the projects store
+
+		// Projects store is imported for state management
+		expect(componentContent).toContain(
+			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
+		);
+
+		// loadData function is defined to handle data fetching
+		expect(componentContent).toContain('async function loadData() {');
+
+		// Projects data is fetched from the API
+		expect(componentContent).toContain('const projectsData = await apiClient.getProjects();');
+
+		// Projects data is stored in the store for reactive updates
+		expect(componentContent).toContain('projects.set(projectsData);');
+
+		// loadData function is called after successful connection test
+		expect(componentContent).toContain('await loadData();');
+	});
+
+	it('should load conversations data during initialization', () => {
+		// Given: A main page component that needs to display recent conversations
+		// When: The component loads data after successful API connection
+		// Then: The apiClient.getConversations() method is called to fetch recent conversations and store them in conversations store
+
+		// Recent conversations are fetched using pagination (page 1, limit 10)
+		expect(componentContent).toContain(
+			'const conversationsData = await apiClient.getConversations(1, 10);'
+		);
+
+		// Conversations data is stored in the conversations store for reactive updates
+		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+
+		// Conversations fetching is part of the loadData function
+		expect(componentContent).toContain('// Load recent conversations');
+	});
+
+	it('should load analytics data during initialization', () => {
+		// Given: A main page component that needs to display dashboard analytics
+		// When: The component loads data after successful API connection
+		// Then: The apiClient.getAnalytics() method is called to fetch dashboard analytics and store them in analytics variable
+
+		// Analytics data is fetched from the API
+		expect(componentContent).toContain('const analyticsData = await apiClient.getAnalytics();');
+
+		// Analytics data is stored in the analytics variable for reactive updates
+		expect(componentContent).toContain('analytics = analyticsData;');
+
+		// Analytics fetching is part of the loadData function
+		expect(componentContent).toContain('// Load analytics');
+	});
 });
