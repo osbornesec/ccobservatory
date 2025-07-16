@@ -15,6 +15,6 @@
 	});
 </script>
 
-<div class="min-h-screen bg-base-100">
+<div class="min-h-screen bg-base-100" data-testid="layout-container">
 	<slot />
 </div>

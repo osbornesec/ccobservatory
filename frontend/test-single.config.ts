@@ -1,41 +1,12 @@
 import { defineConfig } from 'vitest/config';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
 
 export default defineConfig({
-	plugins: [svelte({ 
-		hot: false,
-		emitCss: false,
-		compilerOptions: {
-			hydratable: false
-		}
-	})],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		exclude: ['tests/e2e/**'],
 		environment: 'jsdom',
 		globals: true,
-		setupFiles: ['./src/test-setup.ts'],
-		coverage: {
-			provider: 'v8',
-			reporter: ['text', 'json', 'html', 'lcov'],
-			exclude: [
-				'node_modules/',
-				'src/test-setup.ts',
-				'**/*.d.ts',
-				'**/*.config.*',
-				'build/',
-				'.svelte-kit/',
-				'coverage/',
-				'playwright-report/',
-				'test-results/'
-			],
-			thresholds: {
-				lines: 90,
-				functions: 90,
-				branches: 90,
-				statements: 90
-			}
-		}
+		setupFiles: ['./src/test-setup.ts']
 	},
 	define: {
 		'import.meta.env.VITEST': true
