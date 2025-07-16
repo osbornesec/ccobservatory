@@ -7,6 +7,7 @@
 	import { apiClient } from '$lib/api/client';
 	import { wsClient } from '$lib/api/websocket';
 	import { projects, conversations, connectionStatus } from '$lib/stores/conversations';
+	import { accessibilityService } from '$lib/stores/accessibility';
 	import { Activity, TrendingUp, MessageSquare, Clock } from 'lucide-svelte';
 
 	let isLoading = true;
@@ -41,6 +42,7 @@
 			});
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to initialize application';
+			accessibilityService.announceDataError('dashboard', error);
 		} finally {
 			isLoading = false;
 		}
@@ -59,6 +61,9 @@
 			// Load analytics
 			const analyticsData = await apiClient.getAnalytics();
 			analytics = analyticsData;
+			
+			// Announce successful data load
+			accessibilityService.announceDataLoaded('dashboard data');
 		} catch (err) {
 			throw new Error('Failed to load data from server');
 		}
@@ -67,10 +72,12 @@
 	async function retryLoad() {
 		error = null;
 		isLoading = true;
+		accessibilityService.announce('Retrying to load dashboard data', 'polite');
 		try {
 			await loadData();
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load data';
+			accessibilityService.announceDataError('dashboard', error);
 		} finally {
 			isLoading = false;
 		}

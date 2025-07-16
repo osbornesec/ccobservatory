@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { themeStore } from '$lib/stores/theme';
+	import AccessibilityAnnouncer from '$lib/components/AccessibilityAnnouncer.svelte';
 
 	// Apply theme changes to HTML element
 	$: if (browser && $themeStore) {
@@ -25,6 +26,9 @@
 			Skip to navigation
 		</a>
 	</div>
+	
+	<!-- Accessibility announcements for screen readers -->
+	<AccessibilityAnnouncer />
 	
 	<slot />
 </div>
