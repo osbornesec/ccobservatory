@@ -27,8 +27,8 @@ class ConnectionManager:
         }
         self.client_metadata: Dict[str, dict] = {}
 
-    async def connect(self, websocket: WebSocket, subscriptions: List[str] = None) -> str:
-        """Connect a new WebSocket client."""
+    async def connect(self, websocket: WebSocket, user_info: dict = None, subscriptions: List[str] = None) -> str:
+        """Connect a new WebSocket client with user authentication."""
         await websocket.accept()
         
         client_id = str(uuid.uuid4())
@@ -43,11 +43,12 @@ class ConnectionManager:
             if subscription in self.subscriptions:
                 self.subscriptions[subscription].add(client_id)
         
-        # Store client metadata
+        # Store client metadata with user info
         self.client_metadata[client_id] = {
             "connected_at": datetime.utcnow(),
             "subscriptions": subscriptions,
-            "message_count": 0
+            "message_count": 0,
+            "user_info": user_info or {}
         }
         
         # Send connection confirmation
@@ -56,12 +57,14 @@ class ConnectionManager:
             "data": {
                 "client_id": client_id,
                 "subscriptions": subscriptions,
-                "server_time": datetime.utcnow().isoformat()
+                "server_time": datetime.utcnow().isoformat(),
+                "user_id": user_info.get('user_id') if user_info else None
             },
             "timestamp": datetime.utcnow().isoformat()
         })
         
-        logger.info(f"WebSocket client {client_id} connected")
+        user_id = user_info.get('user_id') if user_info else 'anonymous'
+        logger.info(f"WebSocket client {client_id} connected for user {user_id}")
         return client_id
 
     def disconnect(self, client_id: str):

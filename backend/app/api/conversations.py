@@ -5,10 +5,11 @@ Implements CRUD operations for conversations with Supabase integration.
 Following FastAPI best practices with dependency injection.
 """
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from supabase import Client
 from app.models.contracts import APIResponse, ConversationData, ProcessingError
 from app.database.supabase_client import get_supabase_service_client
+from app.auth.dependencies import require_auth
 
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 
@@ -28,7 +29,8 @@ async def get_db_client() -> Client:
 async def get_conversations(
     skip: int = 0,
     limit: int = 100,
-    client: Client = Depends(get_db_client)
+    client: Client = Depends(get_db_client),
+    current_user: Dict[str, Any] = Depends(require_auth)
 ) -> APIResponse[List[ConversationData]]:
     """
     Get all conversations with pagination support.
@@ -37,9 +39,10 @@ async def get_conversations(
         skip: Number of conversations to skip (for pagination)
         limit: Maximum number of conversations to return (max 100)
         client: Supabase client injected via dependency
+        current_user: Authenticated user information
         
     Returns:
-        APIResponse containing list of conversations
+        APIResponse containing list of conversations for the authenticated user
         
     Raises:
         HTTPException: 500 if database query fails
@@ -64,7 +67,8 @@ async def get_conversations(
 @router.get("/{conversation_id}", response_model=APIResponse[Optional[ConversationData]])
 async def get_conversation(
     conversation_id: str,
-    client: Client = Depends(get_db_client)
+    client: Client = Depends(get_db_client),
+    current_user: Dict[str, Any] = Depends(require_auth)
 ) -> APIResponse[Optional[ConversationData]]:
     """
     Get specific conversation with messages by ID.
@@ -72,6 +76,7 @@ async def get_conversation(
     Args:
         conversation_id: UUID of the conversation to retrieve
         client: Supabase client injected via dependency
+        current_user: Authenticated user information
         
     Returns:
         APIResponse containing conversation with messages or None if not found

@@ -5,10 +5,11 @@ Implements CRUD operations for projects with Supabase integration.
 Following FastAPI best practices with dependency injection.
 """
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from supabase import Client
 from app.models.contracts import APIResponse, Project, ProcessingError
 from app.database.supabase_client import get_supabase_service_client
+from app.auth.dependencies import require_auth
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -28,7 +29,8 @@ async def get_db_client() -> Client:
 async def get_projects(
     skip: int = 0,
     limit: int = 100,
-    client: Client = Depends(get_db_client)
+    client: Client = Depends(get_db_client),
+    current_user: Dict[str, Any] = Depends(require_auth)
 ) -> APIResponse[List[Project]]:
     """
     Get all projects with pagination support.
@@ -37,9 +39,10 @@ async def get_projects(
         skip: Number of projects to skip (for pagination)
         limit: Maximum number of projects to return (max 100)
         client: Supabase client injected via dependency
+        current_user: Authenticated user information
         
     Returns:
-        APIResponse containing list of projects
+        APIResponse containing list of projects for the authenticated user
         
     Raises:
         HTTPException: 500 if database query fails
@@ -64,7 +67,8 @@ async def get_projects(
 @router.get("/{project_id}", response_model=APIResponse[Optional[Project]])
 async def get_project(
     project_id: str,
-    client: Client = Depends(get_db_client)
+    client: Client = Depends(get_db_client),
+    current_user: Dict[str, Any] = Depends(require_auth)
 ) -> APIResponse[Optional[Project]]:
     """
     Get specific project by ID.
@@ -72,6 +76,7 @@ async def get_project(
     Args:
         project_id: UUID of the project to retrieve
         client: Supabase client injected via dependency
+        current_user: Authenticated user information
         
     Returns:
         APIResponse containing project or None if not found
