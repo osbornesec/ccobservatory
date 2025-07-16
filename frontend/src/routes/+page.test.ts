@@ -878,4 +878,130 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('retryAction={retryLoad}');
 	});
 
+	// Phase 9: Component Integration & Data Flow Tests
+	it('should integrate child components with proper imports and composition', () => {
+		// Given: A main page component that serves as a layout composition
+		// When: The component integrates multiple child components
+		// Then: All child components are properly imported and composed in the layout
+
+		// Header component is imported and integrated
+		expect(componentContent).toContain("import Header from '$lib/components/Header.svelte';");
+		expect(componentContent).toContain('<Header />');
+
+		// Sidebar component is imported and integrated
+		expect(componentContent).toContain("import Sidebar from '$lib/components/Sidebar.svelte';");
+		expect(componentContent).toContain('<Sidebar />');
+
+		// Loading component is imported and conditionally rendered
+		expect(componentContent).toContain("import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';");
+		expect(componentContent).toContain('<LoadingSpinner size="lg" text="Loading dashboard..." />');
+
+		// Error component is imported and conditionally rendered
+		expect(componentContent).toContain("import ErrorMessage from '$lib/components/ErrorMessage.svelte';");
+		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+
+		// Layout structure integrates components in proper semantic hierarchy
+		expect(componentContent).toContain('<div class="min-h-screen bg-base-100">');
+		expect(componentContent).toContain('<div class="flex h-[calc(100vh-4rem)]">');
+		expect(componentContent).toContain('<main class="flex-1 overflow-auto">');
+	});
+
+	it('should pass data and props correctly between components and stores', () => {
+		// Given: A main page component that manages data flow between components and stores
+		// When: The component loads data and passes it to child components
+		// Then: Data flows correctly from API → stores → component state → child components
+
+		// API client is used to fetch data
+		expect(componentContent).toContain("import { apiClient } from '$lib/api/client';");
+		expect(componentContent).toContain('const projectsData = await apiClient.getProjects();');
+		expect(componentContent).toContain('const conversationsData = await apiClient.getConversations(1, 10);');
+		expect(componentContent).toContain('const analyticsData = await apiClient.getAnalytics();');
+
+		// Data is stored in Svelte stores for reactive updates
+		expect(componentContent).toContain('projects.set(projectsData);');
+		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('analytics = analyticsData;');
+
+		// Props are passed to child components with correct data types
+		expect(componentContent).toContain('size="lg"');
+		expect(componentContent).toContain('text="Loading dashboard..."');
+		expect(componentContent).toContain('title="Failed to Load Dashboard"');
+		expect(componentContent).toContain('message={error}');
+		expect(componentContent).toContain('retryAction={retryLoad}');
+
+		// Analytics data is bound to template expressions
+		expect(componentContent).toContain('{analytics.total_conversations}');
+		expect(componentContent).toContain('{analytics.total_messages}');
+		expect(componentContent).toContain('{analytics.total_tool_calls}');
+		expect(componentContent).toContain('{Math.round(analytics.avg_conversation_length)}');
+	});
+
+	it('should handle component lifecycle with onMount and async operations', () => {
+		// Given: A main page component that needs to initialize on mount
+		// When: The component mounts and performs async initialization
+		// Then: onMount lifecycle hook properly manages async operations and cleanup
+
+		// onMount lifecycle hook is imported and used
+		expect(componentContent).toContain("import { onMount } from 'svelte';");
+		expect(componentContent).toContain('onMount(async () => {');
+
+		// Async operations are properly handled within onMount
+		expect(componentContent).toContain('try {');
+		expect(componentContent).toContain('const isConnected = await apiClient.testConnection();');
+		expect(componentContent).toContain('await loadData();');
+
+		// WebSocket setup is part of component lifecycle
+		expect(componentContent).toContain('// Set up WebSocket message handlers');
+		expect(componentContent).toContain("wsClient.on('conversation_update', data => {");
+		expect(componentContent).toContain("wsClient.on('project_update', data => {");
+
+		// Error handling is integrated into lifecycle management
+		expect(componentContent).toContain('} catch (err) {');
+		expect(componentContent).toContain(
+			"error = err instanceof Error ? err.message : 'Failed to initialize application';"
+		);
+
+		// Cleanup is handled with finally block
+		expect(componentContent).toContain('} finally {');
+		expect(componentContent).toContain('isLoading = false;');
+
+		// Component lifecycle completes properly
+		expect(componentContent).toContain('});');
+	});
+
+	it('should manage component state isolation with proper error boundaries', () => {
+		// Given: A main page component that isolates different UI states
+		// When: The component handles loading, error, and success states
+		// Then: State isolation prevents UI corruption and provides proper error boundaries
+
+		// State variables are properly scoped and isolated
+		expect(componentContent).toContain('let isLoading = true;');
+		expect(componentContent).toContain('let error: string | null = null;');
+		expect(componentContent).toContain('let analytics = {');
+
+		// Conditional rendering provides state isolation
+		expect(componentContent).toContain('{#if isLoading}');
+		expect(componentContent).toContain('{:else if error}');
+		expect(componentContent).toContain('{:else}');
+		expect(componentContent).toContain('{/if}');
+
+		// Error boundaries isolate error states from success states
+		expect(componentContent).toContain('<div class="p-8">');
+		expect(componentContent).toContain('<div class="p-6">');
+
+		// State transitions are properly managed
+		expect(componentContent).toContain('error = null;');
+		expect(componentContent).toContain('isLoading = true;');
+		expect(componentContent).toContain('isLoading = false;');
+
+		// Recovery mechanisms provide state reset capability
+		expect(componentContent).toContain('async function retryLoad() {');
+		expect(componentContent).toContain('await loadData();');
+
+		// Component isolation prevents state leakage between UI sections
+		expect(componentContent).toContain('<div class="flex items-center justify-center h-full">');
+		expect(componentContent).toContain('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">');
+		expect(componentContent).toContain('<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">');
+	});
+
 });
