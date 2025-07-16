@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.conversations import router as conversations_router
+from app.websocket.endpoints import router as websocket_router
 from app.api.projects import router as projects_router
 
 
@@ -25,6 +26,9 @@ def create_application() -> FastAPI:
 
     # Include API routers
     application.include_router(conversations_router)
+    
+    # Include WebSocket router
+    application.include_router(websocket_router)
     application.include_router(projects_router)
 
     return application

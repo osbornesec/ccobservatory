@@ -1,8 +1,9 @@
 # API Foundation Endpoints - Test Scenarios
 
 ## Progress Summary
-**Completed**: 2/154 test scenarios  
-**Foundation Status**: Basic APIRouter pattern and testing framework established
+**Completed**: 2/180 test scenarios  
+**Foundation Status**: Basic APIRouter pattern and testing framework established  
+**WebSocket Foundation**: Test structure created, ready for Canon TDD implementation
 
 ## Conversations API Tests
 
@@ -107,6 +108,11 @@
 - [ ] Invalid WebSocket messages are rejected properly
 - [ ] Server restart preserves WebSocket functionality
 - [ ] Memory leaks don't occur with long-running connections
+
+### Performance Requirements
+- [ ] WebSocket broadcast latency <50ms (95th percentile)
+- [ ] Concurrent connection handling performance (50+ connections)
+- [ ] Message throughput remains stable under load
 
 ## Security & Validation Tests
 
@@ -218,9 +224,32 @@
 - Parameterized tests for different scenarios
 - Clear test organization following Canon TDD principles
 
+### 🌐 WebSocket Test Structure Created
+
+**Test File**: `backend/tests/test_websocket_foundation.py`
+- Comprehensive test scenarios for WebSocket real-time foundation
+- Follows Canon TDD methodology with behavior-driven test scenarios
+- Covers connection management, message broadcasting, real-time integration
+- Includes performance requirements (<50ms latency) and error handling
+- Test fixtures and helpers for WebSocket testing established
+
+**Module Structure**: `backend/app/websocket/`
+- `connection_manager.py` - ConnectionManager class for tracking active connections
+- `websocket_handler.py` - FastAPI WebSocket endpoint and message routing
+- `__init__.py` - Module initialization
+
+**Key Test Categories**:
+1. **Connection Management** (5 scenarios) - Connection lifecycle and tracking
+2. **Message Broadcasting** (5 scenarios) - Message routing and delivery  
+3. **Real-time Integration** (5 scenarios) - Integration with file monitoring
+4. **Error Handling & Recovery** (5 scenarios) - Fault tolerance and graceful errors
+5. **Performance Requirements** (3 scenarios) - <50ms latency SLA validation
+
+**Ready for Implementation**: WebSocket foundation follows same Canon TDD approach as API endpoints, with test-first development and incremental implementation.
+
 ### 📋 Next Priority Tests
-1. GET /api/conversations returns empty list when no conversations exist
-2. GET /api/conversations/{id} returns 404 for non-existent conversation
-3. GET /api/conversations/{id} returns proper APIResponse wrapper format
-4. APIRouter properly registers with main FastAPI app
-5. Supabase client dependency injection works correctly
+1. WebSocket endpoint accepts connections at /ws
+2. ConnectionManager tracks active connections properly  
+3. GET /api/conversations returns empty list when no conversations exist
+4. GET /api/conversations/{id} returns 404 for non-existent conversation
+5. GET /api/conversations/{id} returns proper APIResponse wrapper format
