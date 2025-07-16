@@ -1,6 +1,5 @@
 name: Claude PR Assistant
-
-  on:
+on:
    issue_comment:
      types: [created]
    pull_request_review_comment:
@@ -9,8 +8,7 @@ name: Claude PR Assistant
      types: [opened, assigned]
    pull_request_review:
      types: [submitted]
-
-  jobs:
+jobs:
    claude-code-action:
      if: |
        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
@@ -32,5 +30,5 @@ name: Claude PR Assistant
      - name: Run Claude PR Action
        uses: anthropics/claude-code-action@beta
        with:
-         anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+         claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
          timeout_minutes: "60"
