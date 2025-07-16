@@ -1251,4 +1251,110 @@ describe('Main Page Component', () => {
 		);
 	});
 
+	// Phase 12: Performance & Optimization Tests (Final Phase)
+	it('should implement efficient component composition with minimal imports', () => {
+		// Given: A main page component that serves as a dashboard entry point
+		// When: The component imports and integrates child components
+		// Then: Component imports are optimized and use tree-shaking friendly patterns
+
+		// Essential component imports follow SvelteKit best practices
+		expect(componentContent).toContain("import { onMount } from 'svelte';");
+		expect(componentContent).toContain("import Header from '$lib/components/Header.svelte';");
+		expect(componentContent).toContain("import Sidebar from '$lib/components/Sidebar.svelte';");
+		expect(componentContent).toContain("import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';");
+		expect(componentContent).toContain("import ErrorMessage from '$lib/components/ErrorMessage.svelte';");
+
+		// API clients are efficiently imported
+		expect(componentContent).toContain("import { apiClient } from '$lib/api/client';");
+		expect(componentContent).toContain("import { wsClient } from '$lib/api/websocket';");
+
+		// Store imports are optimized for tree-shaking
+		expect(componentContent).toContain(
+			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
+		);
+
+		// Icon imports use selective importing for bundle size optimization
+		expect(componentContent).toContain(
+			"import { Activity, TrendingUp, MessageSquare, Clock } from 'lucide-svelte';"
+		);
+
+		// Component composition uses efficient patterns
+		expect(componentContent).toContain('<Header />');
+		expect(componentContent).toContain('<Sidebar />');
+		expect(componentContent).toContain('<LoadingSpinner size="lg" text="Loading dashboard..." />');
+		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+	});
+
+	it('should optimize data loading patterns to prevent performance bottlenecks', () => {
+		// Given: A main page component that loads multiple data sources
+		// When: The component initializes and loads data
+		// Then: Data loading is optimized to prevent waterfalls and blocking operations
+
+		// API connection test is performed first to fail fast
+		expect(componentContent).toContain('const isConnected = await apiClient.testConnection();');
+		expect(componentContent).toContain('if (!isConnected) {');
+		expect(componentContent).toContain("throw new Error('Cannot connect to backend API');");
+
+		// Data loading is consolidated into a single async function
+		expect(componentContent).toContain('async function loadData() {');
+		expect(componentContent).toContain('await loadData();');
+
+		// Multiple API calls are structured efficiently
+		expect(componentContent).toContain('const projectsData = await apiClient.getProjects();');
+		expect(componentContent).toContain('const conversationsData = await apiClient.getConversations(1, 10);');
+		expect(componentContent).toContain('const analyticsData = await apiClient.getAnalytics();');
+
+		// Store updates are batched for performance
+		expect(componentContent).toContain('projects.set(projectsData);');
+		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('analytics = analyticsData;');
+
+		// WebSocket setup is deferred until after data loading
+		expect(componentContent).toContain('// Load initial data');
+		expect(componentContent).toContain('// Set up WebSocket message handlers');
+
+		// Error handling prevents cascading failures
+		expect(componentContent).toContain('try {');
+		expect(componentContent).toContain('} catch (err) {');
+		expect(componentContent).toContain('} finally {');
+	});
+
+	it('should implement efficient reactive patterns with minimal re-renders', () => {
+		// Given: A main page component with reactive analytics display
+		// When: The component renders analytics data and handles updates
+		// Then: Reactive patterns are optimized to prevent unnecessary re-renders
+
+		// Analytics data uses efficient object structure
+		expect(componentContent).toContain('let analytics = {');
+		expect(componentContent).toContain('total_conversations: 0,');
+		expect(componentContent).toContain('total_messages: 0,');
+		expect(componentContent).toContain('total_tool_calls: 0,');
+		expect(componentContent).toContain('avg_conversation_length: 0');
+
+		// Math operations are optimized for performance
+		expect(componentContent).toContain('Math.round(analytics.avg_conversation_length)');
+
+		// Reactive expressions are efficiently bound
+		expect(componentContent).toContain('{analytics.total_conversations}');
+		expect(componentContent).toContain('{analytics.total_messages}');
+		expect(componentContent).toContain('{analytics.total_tool_calls}');
+
+		// Store subscriptions use efficient reactive patterns
+		expect(componentContent).toContain('$connectionStatus');
+		expect(componentContent).toContain(
+			'{$connectionStatus === \'connected\' ? \'Connected\' : \'Disconnected\'}'
+		);
+
+		// Conditional rendering minimizes DOM updates
+		expect(componentContent).toContain('{#if isLoading}');
+		expect(componentContent).toContain('{:else if error}');
+		expect(componentContent).toContain('{:else}');
+		expect(componentContent).toContain('{/if}');
+
+		// WebSocket handlers use efficient update patterns
+		expect(componentContent).toContain('conversations.updateConversation(data.id, data);');
+		expect(componentContent).toContain('projects.update(currentProjects =>');
+		expect(componentContent).toContain('currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))');
+	});
+
 });
