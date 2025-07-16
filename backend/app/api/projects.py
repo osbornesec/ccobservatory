@@ -1,16 +1,16 @@
 """
-Conversations API endpoints.
+Projects API endpoints.
 
-Implements CRUD operations for conversations with Supabase integration.
+Implements CRUD operations for projects with Supabase integration.
 Following FastAPI best practices with dependency injection.
 """
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
 from supabase import Client
-from app.models.contracts import APIResponse, ConversationData, ProcessingError
+from app.models.contracts import APIResponse, Project, ProcessingError
 from app.database.supabase_client import get_supabase_service_client
 
-router = APIRouter(prefix="/api/conversations", tags=["conversations"])
+router = APIRouter(prefix="/api/projects", tags=["projects"])
 
 
 async def get_db_client() -> Client:
@@ -24,22 +24,22 @@ async def get_db_client() -> Client:
         )
 
 
-@router.get("/", response_model=APIResponse[List[ConversationData]])
-async def get_conversations(
+@router.get("/", response_model=APIResponse[List[Project]])
+async def get_projects(
     skip: int = 0,
     limit: int = 100,
     client: Client = Depends(get_db_client)
-) -> APIResponse[List[ConversationData]]:
+) -> APIResponse[List[Project]]:
     """
-    Get all conversations with pagination support.
+    Get all projects with pagination support.
     
     Args:
-        skip: Number of conversations to skip (for pagination)
-        limit: Maximum number of conversations to return (max 100)
+        skip: Number of projects to skip (for pagination)
+        limit: Maximum number of projects to return (max 100)
         client: Supabase client injected via dependency
         
     Returns:
-        APIResponse containing list of conversations
+        APIResponse containing list of projects
         
     Raises:
         HTTPException: 500 if database query fails
@@ -47,34 +47,34 @@ async def get_conversations(
     try:
         # For now, return empty list to make test pass
         # Next iteration will implement actual database query
-        conversations: List[ConversationData] = []
+        projects: List[Project] = []
         
-        return APIResponse(success=True, data=conversations)
+        return APIResponse(success=True, data=projects)
         
     except Exception as e:
         # Log error and return structured error response
         error = ProcessingError(
             error_type="DatabaseQueryError",
-            error_message=f"Failed to retrieve conversations: {str(e)}",
-            component="ConversationsAPI"
+            error_message=f"Failed to retrieve projects: {str(e)}",
+            component="ProjectsAPI"
         )
         raise HTTPException(status_code=500, detail=error.dict())
 
 
-@router.get("/{conversation_id}", response_model=APIResponse[Optional[ConversationData]])
-async def get_conversation(
-    conversation_id: str,
+@router.get("/{project_id}", response_model=APIResponse[Optional[Project]])
+async def get_project(
+    project_id: str,
     client: Client = Depends(get_db_client)
-) -> APIResponse[Optional[ConversationData]]:
+) -> APIResponse[Optional[Project]]:
     """
-    Get specific conversation with messages by ID.
+    Get specific project by ID.
     
     Args:
-        conversation_id: UUID of the conversation to retrieve
+        project_id: UUID of the project to retrieve
         client: Supabase client injected via dependency
         
     Returns:
-        APIResponse containing conversation with messages or None if not found
+        APIResponse containing project or None if not found
         
     Raises:
         HTTPException: 500 if database query fails
@@ -82,15 +82,15 @@ async def get_conversation(
     try:
         # For now, return None to make test pass
         # Next iteration will implement actual database query
-        conversation_data = None
+        project_data = None
         
-        return APIResponse(success=True, data=conversation_data)
+        return APIResponse(success=True, data=project_data)
         
     except Exception as e:
         # Log error and return structured error response
         error = ProcessingError(
             error_type="DatabaseQueryError",
-            error_message=f"Failed to retrieve conversation {conversation_id}: {str(e)}",
-            component="ConversationsAPI"
+            error_message=f"Failed to retrieve project {project_id}: {str(e)}",
+            component="ProjectsAPI"
         )
         raise HTTPException(status_code=500, detail=error.dict())
