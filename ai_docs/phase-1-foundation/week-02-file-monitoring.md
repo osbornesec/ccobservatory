@@ -3,34 +3,37 @@
 
 ## 📋 Week Overview
 
-**Primary Objectives:**
-- Implement robust file system monitoring with Chokidar
-- Develop JSONL parsing engine for Claude Code conversations
-- Establish cross-platform compatibility patterns
-- Create performance benchmarks and optimization strategies
-- Build error handling and recovery mechanisms
+**Primary Objectives:** (Updated based on Week 1 Foundation)
+- ✅ Robust file system monitoring infrastructure (COMPLETED in Week 1)
+- 🎯 Complete Supabase cloud integration and testing
+- 🎯 Implement real-time file-to-database pipeline
+- 🎯 Build WebSocket server for live dashboard updates
+- 🎯 Establish production performance baselines
 
 **Critical Success Criteria:**
-- [x] File changes detected within 100ms (95th percentile)
-- [x] Zero data loss during normal file system operations
-- [x] Support concurrent file monitoring across multiple projects
-- [x] Successful parsing of 95%+ of Claude Code conversation files
-- [x] Memory usage stays below 100MB during monitoring
-- [x] System runs stably for 24+ hours without memory leaks
+- [x] File monitoring infrastructure implemented (Week 1)
+- [x] JSONL parsing engine complete (Week 1)
+- [x] Database schema and migrations ready (Week 1)
+- [ ] Live Supabase integration operational
+- [ ] Real-time file processing pipeline working
+- [ ] WebSocket updates to frontend functional
+- [ ] Performance targets validated (<100ms detection)
 
-**Status: ✅ COMPLETED - Week 4 Implementation**
+**Status: 🎯 READY TO START - Building on Week 1 Foundation**
 
 ---
 
 ## 🗓️ Daily Schedule
 
-### **Monday: Chokidar Integration & Core File Monitoring**
+### **Monday: Supabase Integration & Configuration**
 
-#### **9:00 AM - 10:30 AM: Chokidar Setup & Configuration**
-**Assigned to:** Backend Developer, Full-Stack Developer
-- [ ] Install and configure Chokidar with optimal settings
-- [ ] Implement basic file watching for Claude Code directories
-- [ ] Test file event detection and filtering
+#### **9:00 AM - 10:30 AM: Supabase Project Setup** 🎯 PRIORITY 1
+**Assigned to:** Backend Developer, DevOps Engineer
+- [ ] Create Supabase project and configure API keys
+- [ ] Apply all 5 database migrations to cloud instance
+- [ ] Validate database schema and test connectivity
+
+**Foundation Advantage:** File monitoring infrastructure already implemented in Week 1, allowing immediate focus on cloud integration.
 
 ```typescript
 // packages/file-monitor/src/core/file-watcher.ts
@@ -136,11 +139,14 @@ export interface FileWatcherOptions {
 }
 ```
 
-#### **10:30 AM - 12:00 PM: Claude Code Directory Discovery**
-**Assigned to:** Backend Developer
-- [ ] Implement automatic Claude Code directory detection
-- [ ] Handle multiple project directories
-- [ ] Validate directory access permissions
+#### **10:30 AM - 12:00 PM: Environment Configuration & Testing** 🎯 PRIORITY 1
+**Assigned to:** Backend Developer, DevOps Engineer
+- [ ] Configure .env file with Supabase credentials
+- [ ] Run all 97 backend tests with live database
+- [ ] Validate file monitoring to database integration
+- [ ] Fix any remaining test failures
+
+**Week 1 Foundation Utilized:** Comprehensive testing framework already in place with 97 tests ready for validation.
 
 ```typescript
 // packages/file-monitor/src/discovery/claude-discovery.ts
@@ -453,13 +459,15 @@ export class FileMonitorErrorHandler {
 
 ---
 
-### **Tuesday: JSONL Parser Development**
+### **Tuesday: Real-time File Processing Pipeline**
 
-#### **9:00 AM - 10:30 AM: JSONL Format Analysis & Parser Design**
+#### **9:00 AM - 10:30 AM: File-to-Database Integration** 🎯 PRIORITY 1
 **Assigned to:** Backend Developer, Full-Stack Developer
-- [ ] Analyze various Claude Code conversation formats
-- [ ] Design flexible parser architecture
-- [ ] Handle malformed JSON lines gracefully
+- [ ] Connect file monitoring system to Supabase storage
+- [ ] Implement real-time conversation processing
+- [ ] Test end-to-end file change to database workflow
+
+**Week 1 Advantage:** JSONL parser already implemented and tested, enabling immediate integration focus.
 
 ```typescript
 // packages/core/src/parsers/jsonl-parser.ts
@@ -1044,13 +1052,15 @@ function generateTestJsonl(lines: number): string {
 
 ---
 
-### **Wednesday: Database Integration & Performance Optimization**
+### **Wednesday: WebSocket Server & Real-time Updates**
 
-#### **9:00 AM - 10:30 AM: Database Schema Refinement**
-**Assigned to:** Backend Developer
-- [ ] Optimize database schema for conversation storage
-- [ ] Add indexes for performance-critical queries
-- [ ] Configure SQLite WAL mode for concurrent access
+#### **9:00 AM - 10:30 AM: WebSocket Server Implementation** 🎯 PRIORITY 2
+**Assigned to:** Backend Developer, Full-Stack Developer
+- [ ] Implement WebSocket server in FastAPI backend
+- [ ] Create real-time event broadcasting system
+- [ ] Connect file changes to WebSocket notifications
+
+**Week 1 Foundation:** Database schema already optimized with indexes and constraints, WebSocket client already implemented in SvelteKit frontend.
 
 ```sql
 -- packages/database/migrations/002_conversation_optimization.sql
@@ -1848,13 +1858,16 @@ interface ErrorSummary {
 
 ---
 
-### **Friday: Integration Testing & Week 3 Preparation**
+### **Friday: Performance Validation & Week 3 Preparation**
 
-#### **9:00 AM - 10:30 AM: End-to-End Pipeline Testing**
+#### **9:00 AM - 10:30 AM: Performance Baseline Establishment** 🎯 PRIORITY 1
 **Assigned to:** All team members
-- [ ] Test complete file monitoring to database pipeline
-- [ ] Validate real-time performance with multiple projects
-- [ ] Stress test with high-frequency file changes
+- [ ] Validate <100ms file detection latency requirement
+- [ ] Establish performance baselines with live Supabase
+- [ ] Run comprehensive end-to-end testing
+- [ ] Document system performance characteristics
+
+**Week 1 Advantage:** Performance testing infrastructure already implemented, enabling immediate baseline establishment.
 
 ```typescript
 // test/integration/e2e-pipeline.test.ts
@@ -2202,24 +2215,26 @@ const devConfig = {
 
 ## 📊 Success Metrics & Validation
 
-### **Performance Metrics Achieved**
-- [x] File change detection: 45ms average (target: <100ms)
-- [x] Memory usage: <75MB during normal operation (target: <100MB)
-- [x] Parse success rate: 98.5% (target: 95%+)
-- [x] Zero data loss during 48-hour stress test
-- [x] Concurrent file monitoring: 50+ files simultaneously
+### **Week 1 Foundation Metrics Achieved** ✅
+- [x] **File monitoring infrastructure:** Python watchdog implemented
+- [x] **JSONL parsing engine:** Comprehensive parser with error recovery
+- [x] **Database schema:** 5 migrations with optimal indexes and constraints  
+- [x] **Testing framework:** 97 tests ready for cloud validation
+- [x] **Cross-platform support:** Windows, macOS, Linux compatibility
+- [x] **Development environment:** Production-ready with CI/CD pipeline
 
-### **Platform Compatibility Validated**
-- [x] Windows 10/11: Full compatibility with NTFS optimizations
-- [x] macOS Monterey+: FSEvents integration working optimally
-- [x] Linux Ubuntu 20.04+: inotify configuration automated
-- [x] Container environments: Polling fallback implemented
+### **Week 2 Target Metrics** 🎯
+- [ ] **Live database integration:** All 97 tests passing with Supabase
+- [ ] **Real-time file processing:** <100ms file-to-database latency
+- [ ] **WebSocket updates:** <50ms frontend notification latency
+- [ ] **System stability:** 24+ hour continuous operation
+- [ ] **Performance baseline:** Documented benchmarks for regression testing
 
-### **Error Handling Robustness**
-- [x] Permission denied: Graceful degradation with user guidance
-- [x] Corrupted files: Continue processing with error logging
-- [x] Resource exhaustion: Automatic backoff and retry logic
-- [x] Network drives: Performance warnings and optimizations
+### **Risk Mitigation Achievements** ✅
+- [x] **Technical foundation:** Robust architecture with comprehensive testing
+- [x] **Error handling:** Graceful degradation and recovery mechanisms  
+- [x] **Code quality:** Comprehensive linting, type checking, and formatting
+- [x] **Security:** Dependency scanning and vulnerability management
 
 ---
 
@@ -2231,19 +2246,20 @@ const devConfig = {
 3. **Database State**: Verify schema is properly migrated and indexed
 4. **Error Handling**: Test recovery scenarios work as documented
 
-### **Key Deliverables**
-- [x] Cross-platform file monitoring system with Chokidar
-- [x] Robust JSONL parser with error recovery
-- [x] SQLite database with WAL mode and optimized schema
-- [x] Comprehensive error handling and logging system
-- [x] Performance benchmarks and optimization documentation
-- [x] Cross-platform compatibility layer
+### **Week 2 Target Deliverables** 🎯
+- [ ] **Live Supabase Integration:** Cloud database operational with all tests passing
+- [ ] **Real-time Processing Pipeline:** File changes immediately stored in database  
+- [ ] **WebSocket Server:** Live updates broadcast to frontend dashboard
+- [ ] **Performance Validation:** <100ms file detection latency confirmed
+- [ ] **Production Readiness:** System stable for 24+ hour continuous operation
+- [ ] **Week 3 Foundation:** Dashboard ready for live conversation viewing
 
-### **Next Week Prerequisites**
-- File monitoring system processes real Claude Code conversations
-- Database contains parsed conversation data for frontend development
-- Real-time event pipeline validated and stable
-- Performance optimizations documented and tested
+### **Week 2 Success Criteria**
+- All 97 backend tests pass with live Supabase instance
+- Real-time file-to-database pipeline operational
+- WebSocket updates working with SvelteKit frontend
+- Performance baselines established and documented
+- System ready for Week 3 dashboard development
 
 ---
 

@@ -1,0 +1,150 @@
+# Docker Compose for Claude Code Observatory
+# Development environment with all services
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cco-postgres
+    environment:
+      POSTGRES_DB: ccobservatory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --lc-collate=C --lc-ctype=C'
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cco-network
+
+  # Supabase local stack
+  supabase:
+    image: supabase/postgres:15.1.0.117
+    container_name: cco-supabase
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "54321:5432"  # Supabase default port
+    volumes:
+      - supabase_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cco-network
+
+  # Python FastAPI backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: cco-backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ccobservatory
+      - SUPABASE_URL=http://supabase:5432
+      - SUPABASE_ANON_KEY=your_anon_key_here
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - CLAUDE_PROJECTS_PATH=/app/claude_projects
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - claude_projects:/app/claude_projects
+    depends_on:
+      postgres:
+        condition: service_healthy
+      supabase:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cco-network
+    restart: unless-stopped
+
+  # SvelteKit frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: cco-frontend
+    environment:
+      - PUBLIC_API_URL=http://localhost:8000
+      - PUBLIC_WS_URL=ws://localhost:8000
+    ports:
+      - "8080:8080"  # Nginx port
+      - "5173:5173"  # Vite dev port (for development)
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cco-network
+    restart: unless-stopped
+
+  # Redis for caching and sessions (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: cco-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cco-network
+    restart: unless-stopped
+
+  # Development tools container
+  dev-tools:
+    image: node:20-alpine
+    container_name: cco-dev-tools
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: sleep infinity
+    networks:
+      - cco-network
+
+volumes:
+  postgres_data:
+    driver: local
+  supabase_data:
+    driver: local
+  redis_data:
+    driver: local
+  claude_projects:
+    driver: local
+
+networks:
+  cco-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,160 @@
+# Docker Compose for testing
+# Optimized for CI/CD pipeline and automated testing
+version: '3.8'
+
+services:
+  # Test database
+  postgres-test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ccobservatory_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./supabase/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - test-network
+
+  # Backend tests
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: builder
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-test:5432/ccobservatory_test
+      - ENVIRONMENT=test
+      - DEBUG=false
+    command: >
+      sh -c "
+        pip install pytest-cov pytest-xdist &&
+        pytest tests/ -v 
+          --cov=app 
+          --cov-report=xml 
+          --cov-report=term-missing 
+          --cov-fail-under=85 
+          --junitxml=test-results.xml
+          --maxfail=1
+          -n auto
+      "
+    volumes:
+      - ./backend:/app
+      - backend-test-results:/app/test-results
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - test-network
+
+  # Frontend tests
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test
+    command: >
+      sh -c "
+        npm ci &&
+        npm run test:coverage &&
+        npm run check
+      "
+    volumes:
+      - ./frontend:/app
+      - frontend-test-results:/app/coverage
+    networks:
+      - test-network
+
+  # Integration tests
+  integration-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: builder
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-test:5432/ccobservatory_test
+      - ENVIRONMENT=test
+      - API_BASE_URL=http://backend-test:8000
+    command: >
+      sh -c "
+        pip install httpx pytest-asyncio &&
+        pytest tests/test_*integration* -v 
+          --junitxml=integration-results.xml
+          --maxfail=1
+      "
+    volumes:
+      - ./backend:/app
+      - integration-test-results:/app/test-results
+    depends_on:
+      - postgres-test
+      - backend-test
+    networks:
+      - test-network
+
+  # E2E tests with Playwright
+  e2e-test:
+    image: mcr.microsoft.com/playwright:v1.40.0-focal
+    working_dir: /app
+    environment:
+      - PLAYWRIGHT_BASE_URL=http://frontend-e2e:8080
+      - API_BASE_URL=http://backend-e2e:8000
+    command: >
+      sh -c "
+        npm ci &&
+        npx playwright install &&
+        npm run test:e2e
+      "
+    volumes:
+      - ./frontend:/app
+      - e2e-test-results:/app/test-results
+    depends_on:
+      - backend-e2e
+      - frontend-e2e
+    networks:
+      - test-network
+
+  # Backend for E2E tests
+  backend-e2e:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-test:5432/ccobservatory_test
+      - ENVIRONMENT=test
+      - DEBUG=false
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - test-network
+
+  # Frontend for E2E tests
+  frontend-e2e:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - PUBLIC_API_URL=http://backend-e2e:8000
+    ports:
+      - "8081:8080"
+    depends_on:
+      - backend-e2e
+    networks:
+      - test-network
+
+volumes:
+  backend-test-results:
+  frontend-test-results:
+  integration-test-results:
+  e2e-test-results:
+
+networks:
+  test-network:
+    driver: bridge
