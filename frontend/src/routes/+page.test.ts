@@ -773,4 +773,109 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<div class="space-y-3">');
 	});
 
+	// Phase 8: Reactive State Management Tests
+	it('should import and use Svelte stores for reactive state management', () => {
+		// Given: A main page component that needs reactive state management
+		// When: The component imports and uses Svelte stores
+		// Then: All necessary stores are imported and used for reactive updates
+
+		// Svelte stores are imported for reactive state management
+		expect(componentContent).toContain(
+			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
+		);
+
+		// connectionStatus store is used reactively in the template
+		expect(componentContent).toContain('$connectionStatus');
+
+		// Store references are used for reactive updates
+		expect(componentContent).toContain('conversations.updateConversation');
+		expect(componentContent).toContain('projects.update');
+		expect(componentContent).toContain('projects.set');
+		expect(componentContent).toContain('conversations.set');
+
+		// WebSocket handlers update stores for reactive UI updates
+		expect(componentContent).toContain("wsClient.on('conversation_update'");
+		expect(componentContent).toContain("wsClient.on('project_update'");
+	});
+
+	it('should update stores when WebSocket events are received', () => {
+		// Given: A main page component with WebSocket event handlers
+		// When: WebSocket events are received for conversation or project updates
+		// Then: Stores are updated to trigger reactive UI updates
+
+		// conversation_update handler updates conversations store
+		expect(componentContent).toContain(
+			"wsClient.on('conversation_update', data => {"
+		);
+		expect(componentContent).toContain('conversations.updateConversation(data.id, data);');
+
+		// project_update handler updates projects store with mapping
+		expect(componentContent).toContain(
+			"wsClient.on('project_update', data => {"
+		);
+		expect(componentContent).toContain('projects.update(currentProjects =>');
+		expect(componentContent).toContain('currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))');
+
+		// Store updates trigger reactive UI changes
+		expect(componentContent).toContain('});');
+
+		// WebSocket handlers are set up during component mount
+		expect(componentContent).toContain('onMount(async () => {');
+	});
+
+	it('should manage loading state reactively with isLoading variable', () => {
+		// Given: A main page component that manages loading state
+		// When: The component initializes and loads data
+		// Then: isLoading variable controls reactive loading UI display
+
+		// isLoading variable is declared for reactive state management
+		expect(componentContent).toContain('let isLoading = true;');
+
+		// Loading state is used in conditional rendering
+		expect(componentContent).toContain('{#if isLoading}');
+		expect(componentContent).toContain('<LoadingSpinner size="lg" text="Loading dashboard..." />');
+
+		// Loading state is set to false after initialization
+		expect(componentContent).toContain('} finally {');
+		expect(componentContent).toContain('isLoading = false;');
+
+		// Loading state is reset during retry operations
+		expect(componentContent).toContain('async function retryLoad() {');
+		expect(componentContent).toContain('isLoading = true;');
+
+		// Loading state controls UI visibility reactively
+		expect(componentContent).toContain('{:else if error}');
+		expect(componentContent).toContain('{:else}');
+	});
+
+	it('should manage error state reactively with error variable and retry functionality', () => {
+		// Given: A main page component that manages error state
+		// When: The component encounters errors during initialization or data loading
+		// Then: error variable controls reactive error UI display with retry functionality
+
+		// error variable is declared for reactive error state management
+		expect(componentContent).toContain('let error: string | null = null;');
+
+		// Error state is used in conditional rendering
+		expect(componentContent).toContain('{:else if error}');
+		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+
+		// Error state is set when exceptions occur
+		expect(componentContent).toContain('} catch (err) {');
+		expect(componentContent).toContain(
+			"error = err instanceof Error ? err.message : 'Failed to initialize application';"
+		);
+
+		// Error state is cleared during retry operations
+		expect(componentContent).toContain('async function retryLoad() {');
+		expect(componentContent).toContain('error = null;');
+
+		// Error state controls UI visibility reactively
+		expect(componentContent).toContain('{#if isLoading}');
+		expect(componentContent).toContain('{:else}');
+
+		// Retry functionality is provided through retryAction prop
+		expect(componentContent).toContain('retryAction={retryLoad}');
+	});
+
 });
