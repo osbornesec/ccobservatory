@@ -9,7 +9,13 @@
 	import GettingStarted from '$lib/components/GettingStarted.svelte';
 	import ConnectionStatus from '$lib/components/ConnectionStatus.svelte';
 	import { dashboardService } from '$lib/api/dashboard';
-	import { connectionStatus } from '$lib/stores/conversations';
+	import { wsClient } from '$lib/api/websocket';
+	import {
+		projects,
+		conversationsStore as conversations,
+		connectionStatus
+	} from '$lib/stores/conversations';
+	import type { ConversationUpdateMessage, ProjectUpdateMessage } from '$lib/types';
 
 	let isLoading = true;
 	let error: string | null = null;
@@ -24,6 +30,17 @@
 		try {
 			const result = await dashboardService.initialize();
 			analytics = result.analytics;
+
+			// Set up WebSocket message handlers with proper typing
+			wsClient.on<ConversationUpdateMessage>('conversation_update', data => {
+				conversations.updateConversation(data.id, data);
+			});
+
+			wsClient.on<ProjectUpdateMessage>('project_update', data => {
+				projects.update(currentProjects =>
+					currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))
+				);
+			});
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to initialize application';
 		} finally {
