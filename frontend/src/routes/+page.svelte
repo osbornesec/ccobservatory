@@ -88,7 +88,7 @@
 	<div class="flex h-[calc(100vh-4rem)]">
 		<Sidebar />
 
-		<main class="flex-1 overflow-auto">
+		<main class="flex-1 overflow-auto" id="main-content" aria-label="Dashboard content">
 			{#if isLoading}
 				<div class="flex items-center justify-center h-full">
 					<LoadingSpinner size="lg" text="Loading dashboard..." />
@@ -110,134 +110,155 @@
 					</div>
 
 					<!-- Quick Stats -->
-					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-						<div class="card bg-base-100 shadow-lg border border-base-300">
-							<div class="card-body">
-								<div class="flex items-center justify-between">
-									<div>
-										<p class="text-base-content/70 text-sm">Total Conversations</p>
-										<p class="text-3xl font-bold text-primary">{analytics.total_conversations}</p>
+					<section aria-labelledby="stats-heading">
+						<h2 id="stats-heading" class="sr-only">Quick Statistics</h2>
+						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+							<div class="card bg-base-100 shadow-lg border border-base-300" role="region" aria-labelledby="conversations-stat">
+								<div class="card-body">
+									<div class="flex items-center justify-between">
+										<div>
+											<p class="text-base-content/70 text-sm" id="conversations-stat">Total Conversations</p>
+											<p class="text-3xl font-bold text-primary" aria-describedby="conversations-stat">{analytics.total_conversations}</p>
+										</div>
+										<div class="text-primary" aria-hidden="true">
+											<MessageSquare class="w-8 h-8" />
+										</div>
 									</div>
-									<div class="text-primary">
-										<MessageSquare class="w-8 h-8" />
+								</div>
+							</div>
+
+							<div class="card bg-base-100 shadow-lg border border-base-300" role="region" aria-labelledby="messages-stat">
+								<div class="card-body">
+									<div class="flex items-center justify-between">
+										<div>
+											<p class="text-base-content/70 text-sm" id="messages-stat">Total Messages</p>
+											<p class="text-3xl font-bold text-secondary" aria-describedby="messages-stat">{analytics.total_messages}</p>
+										</div>
+										<div class="text-secondary" aria-hidden="true">
+											<Activity class="w-8 h-8" />
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="card bg-base-100 shadow-lg border border-base-300" role="region" aria-labelledby="tools-stat">
+								<div class="card-body">
+									<div class="flex items-center justify-between">
+										<div>
+											<p class="text-base-content/70 text-sm" id="tools-stat">Tool Calls</p>
+											<p class="text-3xl font-bold text-accent" aria-describedby="tools-stat">{analytics.total_tool_calls}</p>
+										</div>
+										<div class="text-accent" aria-hidden="true">
+											<TrendingUp class="w-8 h-8" />
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="card bg-base-100 shadow-lg border border-base-300" role="region" aria-labelledby="length-stat">
+								<div class="card-body">
+									<div class="flex items-center justify-between">
+										<div>
+											<p class="text-base-content/70 text-sm" id="length-stat">Avg Length</p>
+											<p class="text-3xl font-bold text-info" aria-describedby="length-stat">
+												{Math.round(analytics.avg_conversation_length)}
+											</p>
+										</div>
+										<div class="text-info" aria-hidden="true">
+											<Clock class="w-8 h-8" />
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
+					</section>
 
-						<div class="card bg-base-100 shadow-lg border border-base-300">
-							<div class="card-body">
-								<div class="flex items-center justify-between">
-									<div>
-										<p class="text-base-content/70 text-sm">Total Messages</p>
-										<p class="text-3xl font-bold text-secondary">{analytics.total_messages}</p>
-									</div>
-									<div class="text-secondary">
-										<Activity class="w-8 h-8" />
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="card bg-base-100 shadow-lg border border-base-300">
-							<div class="card-body">
-								<div class="flex items-center justify-between">
-									<div>
-										<p class="text-base-content/70 text-sm">Tool Calls</p>
-										<p class="text-3xl font-bold text-accent">{analytics.total_tool_calls}</p>
-									</div>
-									<div class="text-accent">
-										<TrendingUp class="w-8 h-8" />
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="card bg-base-100 shadow-lg border border-base-300">
-							<div class="card-body">
-								<div class="flex items-center justify-between">
-									<div>
-										<p class="text-base-content/70 text-sm">Avg Length</p>
-										<p class="text-3xl font-bold text-info">
-											{Math.round(analytics.avg_conversation_length)}
-										</p>
-									</div>
-									<div class="text-info">
-										<Clock class="w-8 h-8" />
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<!-- Getting Started -->
+					<!-- Getting Started and Status -->
 					<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-						<div class="card bg-base-100 shadow-lg border border-base-300">
-							<div class="card-body">
-								<h2 class="card-title text-base-content">Getting Started</h2>
-								<div class="space-y-4">
-									<div class="flex items-start gap-3">
-										<div class="badge badge-primary">1</div>
-										<div>
-											<p class="font-medium">Start a Claude Code session</p>
-											<p class="text-sm text-base-content/70">
-												Files will be automatically detected from ~/.claude/projects/
-											</p>
-										</div>
-									</div>
-									<div class="flex items-start gap-3">
-										<div class="badge badge-primary">2</div>
-										<div>
-											<p class="font-medium">Monitor real-time activity</p>
-											<p class="text-sm text-base-content/70">
-												Watch conversations and tool usage as they happen
-											</p>
-										</div>
-									</div>
-									<div class="flex items-start gap-3">
-										<div class="badge badge-primary">3</div>
-										<div>
-											<p class="font-medium">Analyze patterns</p>
-											<p class="text-sm text-base-content/70">
-												Use analytics to understand your development workflow
-											</p>
-										</div>
-									</div>
-								</div>
-								<div class="card-actions justify-end mt-4">
-									<a href="/conversations" class="btn btn-primary">View Conversations</a>
-								</div>
-							</div>
-						</div>
-
-						<div class="card bg-base-100 shadow-lg border border-base-300">
-							<div class="card-body">
-								<h2 class="card-title text-base-content">Connection Status</h2>
-								<div class="space-y-3">
-									<div class="flex items-center justify-between">
-										<span>Backend API</span>
-										<div class="badge badge-success">Connected</div>
-									</div>
-									<div class="flex items-center justify-between">
-										<span>WebSocket</span>
-										<div
-											class="badge {$connectionStatus === 'connected'
-												? 'badge-success'
-												: 'badge-warning'}"
+						<section aria-labelledby="getting-started-heading">
+							<div class="card bg-base-100 shadow-lg border border-base-300">
+								<div class="card-body">
+									<h2 class="card-title text-base-content" id="getting-started-heading">Getting Started</h2>
+									<ol class="space-y-4 list-none">
+										<li class="flex items-start gap-3">
+											<div class="badge badge-primary" aria-hidden="true">1</div>
+											<div>
+												<p class="font-medium">Start a Claude Code session</p>
+												<p class="text-sm text-base-content/70">
+													Files will be automatically detected from ~/.claude/projects/
+												</p>
+											</div>
+										</li>
+										<li class="flex items-start gap-3">
+											<div class="badge badge-primary" aria-hidden="true">2</div>
+											<div>
+												<p class="font-medium">Monitor real-time activity</p>
+												<p class="text-sm text-base-content/70">
+													Watch conversations and tool usage as they happen
+												</p>
+											</div>
+										</li>
+										<li class="flex items-start gap-3">
+											<div class="badge badge-primary" aria-hidden="true">3</div>
+											<div>
+												<p class="font-medium">Analyze patterns</p>
+												<p class="text-sm text-base-content/70">
+													Use analytics to understand your development workflow
+												</p>
+											</div>
+										</li>
+									</ol>
+									<div class="card-actions justify-end mt-4">
+										<a 
+											href="/conversations" 
+											class="btn btn-primary"
+											aria-label="Go to conversations page to view your Claude Code interactions"
 										>
-											{$connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}
-										</div>
+											View Conversations
+										</a>
 									</div>
-									<div class="flex items-center justify-between">
-										<span>File Monitor</span>
-										<div class="badge badge-info">Active</div>
-									</div>
-								</div>
-								<div class="card-actions justify-end mt-4">
-									<a href="/settings" class="btn btn-outline">Settings</a>
 								</div>
 							</div>
-						</div>
+						</section>
+
+						<section aria-labelledby="connection-status-heading">
+							<div class="card bg-base-100 shadow-lg border border-base-300">
+								<div class="card-body">
+									<h2 class="card-title text-base-content" id="connection-status-heading">Connection Status</h2>
+									<div class="space-y-3" role="list">
+										<div class="flex items-center justify-between" role="listitem">
+											<span>Backend API</span>
+											<div class="badge badge-success" role="status" aria-label="Backend API connection status: Connected">Connected</div>
+										</div>
+										<div class="flex items-center justify-between" role="listitem">
+											<span>WebSocket</span>
+											<div
+												class="badge {$connectionStatus === 'connected'
+													? 'badge-success'
+													: 'badge-warning'}"
+												role="status"
+												aria-label="WebSocket connection status: {$connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}"
+											>
+												{$connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}
+											</div>
+										</div>
+										<div class="flex items-center justify-between" role="listitem">
+											<span>File Monitor</span>
+											<div class="badge badge-info" role="status" aria-label="File monitor status: Active">Active</div>
+										</div>
+									</div>
+									<div class="card-actions justify-end mt-4">
+										<a 
+											href="/settings" 
+											class="btn btn-outline"
+											aria-label="Go to settings page to configure your preferences"
+										>
+											Settings
+										</a>
+									</div>
+								</div>
+							</div>
+						</section>
 					</div>
 				</div>
 			{/if}

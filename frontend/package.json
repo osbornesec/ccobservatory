@@ -20,9 +20,11 @@
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed",
 		"test:e2e:debug": "playwright test --debug",
+		"test:accessibility": "playwright test --config=playwright.config.accessibility.ts",
 		"typecheck": "tsc --noEmit"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.10.0",
 		"@playwright/test": "^1.40.0",
 		"@sveltejs/adapter-auto": "^6.0.0",
 		"@sveltejs/kit": "^2.22.0",
@@ -35,6 +37,7 @@
 		"@typescript-eslint/parser": "^7.0.0",
 		"@vitest/coverage-v8": "^3.2.4",
 		"autoprefixer": "^10.4.21",
+		"axe-core": "^4.10.2",
 		"daisyui": "^5.0.46",
 		"eslint": "^8.57.0",
 		"eslint-config-prettier": "^9.1.0",
