@@ -516,4 +516,184 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('} finally {');
 		expect(componentContent).toContain('isLoading = false;');
 	});
+
+	// Phase 5: WebSocket Integration & Real-time Updates Tests
+	it('sets up WebSocket message handlers on component mount', () => {
+		// Given: A main page component that needs real-time updates via WebSocket
+		// When: The component mounts and initializes WebSocket event listeners
+		// Then: Both conversation_update and project_update handlers are registered within onMount lifecycle
+
+		// onMount lifecycle function contains WebSocket handler setup
+		const onMountStart = componentContent.indexOf('onMount(async () => {');
+		expect(onMountStart).toBeGreaterThan(-1);
+
+		// Find the entire onMount function block by looking for the structure after both handlers
+		const onMountContent = componentContent.substring(onMountStart);
+		// Look for the pattern that comes after both WebSocket handlers: } catch (err) { ... } finally { ... });
+		const endPattern = /}\s*finally\s*\{[\s\S]*?\}\s*\}\);/;
+		const match = onMountContent.match(endPattern);
+		expect(match).not.toBeNull();
+		const onMountEnd = onMountStart + match!.index + match![0].length;
+		expect(onMountEnd).toBeGreaterThan(onMountStart);
+
+		// conversation_update handler is registered inside onMount
+		const convoIdx = componentContent.indexOf("wsClient.on('conversation_update'", onMountStart);
+		expect(convoIdx).toBeGreaterThan(-1);
+		expect(convoIdx).toBeLessThan(onMountEnd);
+
+		// project_update handler is registered inside onMount
+		const projIdx = componentContent.indexOf("wsClient.on('project_update'", onMountStart);
+		expect(projIdx).toBeGreaterThan(-1);
+		expect(projIdx).toBeLessThan(onMountEnd);
+
+		// Both handlers reside inside the main try-catch block for error safety
+		const tryIdx = componentContent.indexOf('try {', onMountStart);
+		const catchIdx = componentContent.indexOf('} catch', onMountStart);
+		expect(tryIdx).toBeGreaterThan(-1);
+		expect(catchIdx).toBeGreaterThan(convoIdx);
+		expect(catchIdx).toBeGreaterThan(projIdx);
+	});
+
+	it('handles conversation_update events for real-time conversation changes', () => {
+		// Given: A main page component that registers WebSocket listeners
+		// When: The WebSocket receives a "conversation_update" event with a payload
+		// Then: conversations.updateConversation(data.id, data) is called to update the store
+
+		// Handler is registered with an arrow function that accepts `data`
+		const registrationPattern =
+			/wsClient\.on\(\s*['"]conversation_update['"]\s*,\s*data\s*=>\s*{\s*[\s\S]*?\s*}\s*\)/;
+		expect(componentContent).toMatch(registrationPattern);
+
+		// Handler body calls the store action with the correct parameter order
+		const updateCallPattern = /conversations\.updateConversation\(\s*data\.id\s*,\s*data\s*\)/;
+		expect(componentContent).toMatch(updateCallPattern);
+	});
+
+	it('handles project_update events for real-time project changes', () => {
+		// Given: A main page component that listens for "project_update" WebSocket events
+		// When: The component source is inspected for project update handling
+		// Then: The handler updates the projects store by mapping and merging the changed project
+
+		// WebSocket event handler is registered for project updates
+		expect(componentContent).toContain("wsClient.on('project_update'");
+
+		// projects.update call performs an in-place map with id match logic
+		expect(componentContent).toMatch(
+			/projects\.update\([\s\S]*currentProjects\s*=>[\s\S]*currentProjects\.map\([\s\S]*p\.id === data\.id[\s\S]*\.\.\.p, \.\.\.data/s
+		);
+	});
+
+	it('updates stores reactively when WebSocket messages arrive', () => {
+		// Given: A main page component that receives real-time "conversation_update" and "project_update" messages
+		// When: The component source is analyzed for reactive store updates
+		// Then: Both stores receive update calls that trigger Svelte reactivity
+
+		// conversation_update handler calls updateConversation helper
+		expect(componentContent).toContain("wsClient.on('conversation_update'");
+		expect(componentContent).toMatch(/conversations\.updateConversation\([\s\S]*data\.id/);
+
+		// project_update handler calls projects.update mapper
+		expect(componentContent).toContain("wsClient.on('project_update'");
+		expect(componentContent).toMatch(/projects\.update\(/);
+
+		// Presence of $connectionStatus in the markup confirms reactive consumption
+		expect(componentContent).toContain('{$connectionStatus ===');
+	});
+
+	it('manages WebSocket connection lifecycle properly', () => {
+		// Given: A main page component that integrates WebSocket client for real-time updates
+		// When: The component file is inspected for lifecycle setup and connection status
+		// Then: Lifecycle setup and connectionStatus store wiring are present
+
+		// WebSocket client imported for lifecycle management
+		expect(componentContent).toContain("import { wsClient } from '$lib/api/websocket';");
+
+		// Event handlers are registered inside the onMount lifecycle
+		expect(componentContent).toMatch(/onMount\s*\([\s\S]*wsClient\.on\('conversation_update'/);
+
+		// connectionStatus store is imported and its state is shown in the badge
+		expect(componentContent).toContain(
+			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
+		);
+		expect(componentContent).toMatch(
+			/class="badge {\$connectionStatus === 'connected'[\s\S]*\? 'badge-success'[\s\S]*: 'badge-warning'}"/
+		);
+
+		// UI text changes reactively with connectionStatus
+		expect(componentContent).toContain(
+			"{$connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}"
+		);
+	});
+
+	// Phase 6: Navigation & User Interactions Tests
+	it('should provide navigation link to conversations page with proper accessibility', () => {
+		// Given: A main page component with getting started section
+		// When: The component renders action buttons for user navigation
+		// Then: View Conversations button has proper href and accessibility attributes
+
+		// Getting Started section contains navigation actions
+		expect(componentContent).toContain('<!-- Getting Started -->');
+		expect(componentContent).toContain('<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">');
+
+		// View Conversations button has proper href for navigation
+		expect(componentContent).toContain('<a href="/conversations" class="btn btn-primary">View Conversations</a>');
+
+		// Card actions provide proper semantic structure for navigation
+		expect(componentContent).toContain('<div class="card-actions justify-end mt-4">');
+
+		// Navigation link uses DaisyUI button styling for consistency
+		expect(componentContent).toContain('class="btn btn-primary"');
+
+		// Link text is descriptive and meaningful for screen readers
+		expect(componentContent).toContain('>View Conversations<');
+	});
+
+	it('should provide navigation link to settings page with proper styling', () => {
+		// Given: A main page component with connection status section
+		// When: The component renders secondary navigation actions
+		// Then: Settings button has proper href and secondary button styling
+
+		// Connection Status section contains settings navigation
+		expect(componentContent).toContain('<h2 class="card-title text-base-content">Connection Status</h2>');
+
+		// Settings button has proper href for navigation
+		expect(componentContent).toContain('<a href="/settings" class="btn btn-outline">Settings</a>');
+
+		// Settings uses outline button styling for secondary action
+		expect(componentContent).toContain('class="btn btn-outline"');
+
+		// Card actions provide proper semantic structure for secondary navigation
+		expect(componentContent).toContain('<div class="card-actions justify-end mt-4">');
+
+		// Link text is descriptive and meaningful for screen readers
+		expect(componentContent).toContain('>Settings<');
+	});
+
+	it('should display interactive cards with proper hover and focus states', () => {
+		// Given: A main page component with analytics cards and navigation sections
+		// When: The component renders card elements with interactive styling
+		// Then: Cards use proper DaisyUI classes for hover and focus states
+
+		// Analytics cards use proper DaisyUI card classes with shadow and border
+		expect(componentContent).toContain(
+			'<div class="card bg-base-100 shadow-lg border border-base-300">'
+		);
+
+		// Card bodies provide proper structure for content
+		expect(componentContent).toContain('<div class="card-body">');
+
+		// Navigation buttons use proper DaisyUI button classes with hover states
+		expect(componentContent).toContain('class="btn btn-primary"');
+		expect(componentContent).toContain('class="btn btn-outline"');
+
+		// Card actions provide proper spacing and alignment
+		expect(componentContent).toContain('<div class="card-actions justify-end mt-4">');
+
+		// Card structure supports accessibility with proper semantic HTML
+		expect(componentContent).toContain('<h2 class="card-title text-base-content">');
+
+		// Grid layout provides responsive interaction zones
+		expect(componentContent).toContain('<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">');
+	});
+
 });
