@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import Header from '$lib/components/Header.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
@@ -18,6 +18,9 @@
 		avg_conversation_length: 0
 	};
 
+	// Store references to event handler functions for cleanup
+	let unsubscribeHandlers: (() => void)[] = [];
+
 	onMount(async () => {
 		try {
 			// Test API connection
@@ -30,15 +33,24 @@
 			await loadData();
 
 			// Set up WebSocket message handlers
-			wsClient.on('conversation_update', data => {
+			const handleConversationUpdate = (data: any) => {
 				conversations.updateConversation(data.id, data);
-			});
+			};
 
-			wsClient.on('project_update', data => {
+			const handleProjectUpdate = (data: any) => {
 				projects.update(currentProjects =>
 					currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))
 				);
-			});
+			};
+
+			wsClient.on('conversation_update', handleConversationUpdate);
+			wsClient.on('project_update', handleProjectUpdate);
+
+			// Store cleanup functions for onDestroy
+			unsubscribeHandlers.push(
+				() => wsClient.off('conversation_update', handleConversationUpdate),
+				() => wsClient.off('project_update', handleProjectUpdate)
+			);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to initialize application';
 		} finally {
@@ -63,6 +75,11 @@
 			throw new Error('Failed to load data from server');
 		}
 	}
+
+	onDestroy(() => {
+		// Clean up WebSocket event listeners to prevent memory leaks
+		unsubscribeHandlers.forEach(cleanup => cleanup());
+	});
 
 	async function retryLoad() {
 		error = null;

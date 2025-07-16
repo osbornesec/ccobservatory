@@ -91,7 +91,7 @@ describe('Main Page Component', () => {
 		// Then: The apiClient.testConnection() method is called once to verify backend availability
 
 		// onMount lifecycle function is imported from svelte for component initialization
-		expect(componentContent).toContain("import { onMount } from 'svelte';");
+		expect(componentContent).toContain("import { onMount, onDestroy } from 'svelte';");
 
 		// API client is imported for backend communication
 		expect(componentContent).toContain("import { apiClient } from '$lib/api/client';");
@@ -559,10 +559,8 @@ describe('Main Page Component', () => {
 		// When: The WebSocket receives a "conversation_update" event with a payload
 		// Then: conversations.updateConversation(data.id, data) is called to update the store
 
-		// Handler is registered with an arrow function that accepts `data`
-		const registrationPattern =
-			/wsClient\.on\(\s*['"]conversation_update['"]\s*,\s*data\s*=>\s*{\s*[\s\S]*?\s*}\s*\)/;
-		expect(componentContent).toMatch(registrationPattern);
+		// Handler is registered with a named function 
+		expect(componentContent).toContain("wsClient.on('conversation_update', handleConversationUpdate);");
 
 		// Handler body calls the store action with the correct parameter order
 		const updateCallPattern = /conversations\.updateConversation\(\s*data\.id\s*,\s*data\s*\)/;
@@ -805,13 +803,13 @@ describe('Main Page Component', () => {
 
 		// conversation_update handler updates conversations store
 		expect(componentContent).toContain(
-			"wsClient.on('conversation_update', data => {"
+			"wsClient.on('conversation_update', handleConversationUpdate);"
 		);
 		expect(componentContent).toContain('conversations.updateConversation(data.id, data);');
 
 		// project_update handler updates projects store with mapping
 		expect(componentContent).toContain(
-			"wsClient.on('project_update', data => {"
+			"wsClient.on('project_update', handleProjectUpdate);"
 		);
 		expect(componentContent).toContain('projects.update(currentProjects =>');
 		expect(componentContent).toContain('currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))');
@@ -942,7 +940,7 @@ describe('Main Page Component', () => {
 		// Then: onMount lifecycle hook properly manages async operations and cleanup
 
 		// onMount lifecycle hook is imported and used
-		expect(componentContent).toContain("import { onMount } from 'svelte';");
+		expect(componentContent).toContain("import { onMount, onDestroy } from 'svelte';");
 		expect(componentContent).toContain('onMount(async () => {');
 
 		// Async operations are properly handled within onMount
@@ -952,8 +950,8 @@ describe('Main Page Component', () => {
 
 		// WebSocket setup is part of component lifecycle
 		expect(componentContent).toContain('// Set up WebSocket message handlers');
-		expect(componentContent).toContain("wsClient.on('conversation_update', data => {");
-		expect(componentContent).toContain("wsClient.on('project_update', data => {");
+		expect(componentContent).toContain("wsClient.on('conversation_update', handleConversationUpdate);");
+		expect(componentContent).toContain("wsClient.on('project_update', handleProjectUpdate);");
 
 		// Error handling is integrated into lifecycle management
 		expect(componentContent).toContain('} catch (err) {');
@@ -1078,8 +1076,8 @@ describe('Main Page Component', () => {
 
 		// WebSocket handlers are set up within error boundaries
 		expect(componentContent).toContain('try {');
-		expect(componentContent).toContain("wsClient.on('conversation_update', data => {");
-		expect(componentContent).toContain("wsClient.on('project_update', data => {");
+		expect(componentContent).toContain("wsClient.on('conversation_update', handleConversationUpdate);");
+		expect(componentContent).toContain("wsClient.on('project_update', handleProjectUpdate);");
 		expect(componentContent).toContain('} catch (err) {');
 
 		// connectionStatus store tracks WebSocket health
@@ -1258,7 +1256,7 @@ describe('Main Page Component', () => {
 		// Then: Component imports are optimized and use tree-shaking friendly patterns
 
 		// Essential component imports follow SvelteKit best practices
-		expect(componentContent).toContain("import { onMount } from 'svelte';");
+		expect(componentContent).toContain("import { onMount, onDestroy } from 'svelte';");
 		expect(componentContent).toContain("import Header from '$lib/components/Header.svelte';");
 		expect(componentContent).toContain("import Sidebar from '$lib/components/Sidebar.svelte';");
 		expect(componentContent).toContain("import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';");
