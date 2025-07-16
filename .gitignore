@@ -97,3 +97,17 @@ tmp/
 .svelte-kit/
 build/
 .output/
+
+# Testing
+test-results/
+playwright-report/
+junit.xml
+bandit-report.json
+.secrets.baseline
+
+# Pre-commit
+.pre-commit-config.yaml.bak
+
+# Supabase
+supabase/.branches
+supabase/.temp

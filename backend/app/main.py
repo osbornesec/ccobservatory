@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.conversations import router as conversations_router
 
 
 def create_application() -> FastAPI:
@@ -20,6 +21,9 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Include API routers
+    application.include_router(conversations_router)
 
     return application
 
