@@ -696,4 +696,81 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">');
 	});
 
+	// Phase 7: Connection Status Display Tests
+	it('should display backend API connection status as connected when page loads successfully', () => {
+		// Given: A main page component that successfully loads after API connection test
+		// When: The component renders connection status information
+		// Then: Backend API shows "Connected" status with success badge styling
+
+		// Connection Status section contains backend API status
+		expect(componentContent).toContain('<h2 class="card-title text-base-content">Connection Status</h2>');
+
+		// Backend API connection status is displayed
+		expect(componentContent).toContain('<span>Backend API</span>');
+		expect(componentContent).toContain('<div class="badge badge-success">Connected</div>');
+
+		// Status items use proper flex layout for alignment
+		expect(componentContent).toContain('<div class="flex items-center justify-between">');
+
+		// Connection status uses semantic HTML structure
+		expect(componentContent).toContain('<div class="space-y-3">');
+
+		// Backend API status appears in the Connection Status card
+		const backendStatusPattern = /<span>Backend API<\/span>[\s\S]*?<div class="badge badge-success">Connected<\/div>/;
+		expect(componentContent).toMatch(backendStatusPattern);
+	});
+
+	it('should display WebSocket connection status reactively based on connectionStatus store', () => {
+		// Given: A main page component that subscribes to connectionStatus store
+		// When: The component renders WebSocket connection status
+		// Then: WebSocket status displays reactive badges based on connection state
+
+		// WebSocket connection status is displayed
+		expect(componentContent).toContain('<span>WebSocket</span>');
+
+		// WebSocket badge uses reactive class binding based on connectionStatus
+		expect(componentContent).toContain(
+			'class="badge {$connectionStatus === \'connected\'\n\t\t\t\t\t\t\t\t\t\t\t\t? \'badge-success\'\n\t\t\t\t\t\t\t\t\t\t\t\t: \'badge-warning\'}"'
+		);
+
+		// WebSocket status text changes reactively with connection state
+		expect(componentContent).toContain(
+			"{$connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}"
+		);
+
+		// connectionStatus store is imported for reactive updates
+		expect(componentContent).toContain(
+			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
+		);
+
+		// WebSocket status appears in the Connection Status card
+		const wsStatusPattern = /<span>WebSocket<\/span>[\s\S]*?class="badge.*?\$connectionStatus/;
+		expect(componentContent).toMatch(wsStatusPattern);
+	});
+
+	it('should display file monitor status as active with info badge styling', () => {
+		// Given: A main page component that shows system monitoring status
+		// When: The component renders file monitor connection status
+		// Then: File Monitor shows "Active" status with info badge styling
+
+		// File Monitor connection status is displayed
+		expect(componentContent).toContain('<span>File Monitor</span>');
+		expect(componentContent).toContain('<div class="badge badge-info">Active</div>');
+
+		// File monitor status uses proper flex layout for alignment
+		expect(componentContent).toContain('<div class="flex items-center justify-between">');
+
+		// File monitor status appears in the Connection Status card
+		const fileMonitorPattern = /<span>File Monitor<\/span>[\s\S]*?<div class="badge badge-info">Active<\/div>/;
+		expect(componentContent).toMatch(fileMonitorPattern);
+
+		// All three connection statuses are present in the same card
+		expect(componentContent).toContain('<span>Backend API</span>');
+		expect(componentContent).toContain('<span>WebSocket</span>');
+		expect(componentContent).toContain('<span>File Monitor</span>');
+
+		// Connection status card maintains consistent structure
+		expect(componentContent).toContain('<div class="space-y-3">');
+	});
+
 });
