@@ -30,13 +30,13 @@
 			await loadData();
 
 			// Set up WebSocket message handlers
-			wsClient.on('conversation_update', data => {
+			wsClient.on('conversation_update', (data: any) => {
 				conversations.updateConversation(data.id, data);
 			});
 
-			wsClient.on('project_update', data => {
-				projects.update(currentProjects =>
-					currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))
+			wsClient.on('project_update', (data: any) => {
+				projects.update((currentProjects: any[]) =>
+					currentProjects.map((p: any) => (p.id === data.id ? { ...p, ...data } : p))
 				);
 			});
 		} catch (err) {
