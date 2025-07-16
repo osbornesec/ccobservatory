@@ -1,8 +1,12 @@
 import { defineConfig } from 'vitest/config';
-import { sveltekit } from '@sveltejs/kit/vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 
-export default defineConfig(({ mode }) => ({
-	plugins: mode === 'test' ? [] : [sveltekit()],
+export default defineConfig({
+	plugins: [
+		svelte({
+			hot: false
+		})
+	],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		exclude: ['tests/e2e/**'],
@@ -43,4 +47,4 @@ export default defineConfig(({ mode }) => ({
 			'$env/static/public': new URL('./src/mocks/env-static-public.ts', import.meta.url).pathname
 		}
 	}
-}));
+});

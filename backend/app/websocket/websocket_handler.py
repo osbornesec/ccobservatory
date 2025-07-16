@@ -36,8 +36,24 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str = None):
     - Handle WebSocketDisconnect exceptions gracefully
     - Integrate with file monitoring for real-time updates
     """
-    # To be implemented based on test requirements
-    pass
+    try:
+        # Connect client using ConnectionManager
+        await connection_manager.connect(websocket, client_id)
+        
+        # Start message receiving loop
+        while True:
+            message_text = await websocket.receive_text()
+            # Parse JSON message and process it
+            try:
+                message_data = json.loads(message_text)
+                await handle_websocket_message(message_data, client_id)
+            except json.JSONDecodeError:
+                # Invalid JSON - ignore for now, will be handled in future tests
+                pass
+            
+    except WebSocketDisconnect:
+        # Handle disconnection gracefully
+        await connection_manager.disconnect(client_id)
 
 
 async def handle_websocket_message(
@@ -60,8 +76,12 @@ async def handle_websocket_message(
     - Validate message format and reject invalid messages
     - Integrate with database for data retrieval
     """
-    # To be implemented based on test requirements
-    pass
+    # Handle ping message type
+    if message.get("type") == "ping":
+        return {"type": "pong"}
+    
+    # For unsupported message types, gracefully handle by returning an error response
+    return {"error": "unsupported message type"}
 
 
 async def broadcast_conversation_update(
@@ -82,8 +102,14 @@ async def broadcast_conversation_update(
     - Include conversation metadata in updates
     - Filter recipients based on project/conversation relevance
     """
-    # To be implemented based on test requirements
-    pass
+    # Format message with type and data fields
+    message = {
+        "type": update_type,
+        "data": conversation_data
+    }
+    
+    # Use ConnectionManager to broadcast to relevant clients
+    await connection_manager.broadcast(message)
 
 
 async def broadcast_file_monitoring_update(

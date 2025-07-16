@@ -213,3 +213,31 @@ The `/notes/features/` directory contains TDD development notes:
 - User-controlled data access and retention
 - File system permissions validation
 - Privacy controls for data anonymization
+
+## Lessons Learned
+
+### Canon TDD Discipline Violations (Week 1 Development)
+
+**Critical Issue**: During Week 1 component testing implementation, I violated core Canon TDD principles by:
+
+1. **Writing Multiple Tests at Once**: Created comprehensive test files with 20-40 tests instead of writing exactly ONE test at a time
+2. **Skipping the TDD Cycle**: Never ran individual tests through the "Write One Test → Make It Pass → Refactor" cycle
+3. **Creating Full Test Suites Upfront**: Built entire test files instead of incrementally developing tests and implementation together
+
+**Why This Matters**: 
+- Canon TDD's power comes from the disciplined cycle that forces focus on each behavior individually
+- Writing multiple tests at once leads to over-engineering and loss of immediate feedback
+- The incremental design evolution is lost when skipping the proper cycle
+- Prevents the natural emergence of minimal, well-designed implementations
+
+**Correct Canon TDD Process**:
+1. Pick ONE specific test scenario (e.g., "Header displays application title")
+2. Write ONLY that test
+3. Run it and watch it fail
+4. Write minimal code to make it pass
+5. Refactor if needed while maintaining all passing tests
+6. Then move to the next single test
+
+**Key Reminder**: Even when using parallel subagents for efficiency, each agent must follow the Canon TDD cycle of one test at a time, not create comprehensive test suites upfront.
+
+**Impact**: This violation led to creating test files that couldn't run due to configuration issues, and missing the iterative design benefits that Canon TDD provides.

@@ -31,6 +31,15 @@ from .performance_monitor import PerformanceMonitor
 logger = logging.getLogger(__name__)
 
 
+class FileMonitorError(Exception):
+    """Exception raised by FileMonitor for startup/shutdown errors."""
+    def __init__(self, error_type: str, error_message: str, component: str = "FileMonitor"):
+        self.error_type = error_type
+        self.error_message = error_message
+        self.component = component
+        super().__init__(f"{error_type}: {error_message}")
+
+
 class FileMonitor:
     """
     Main file monitoring service for Claude Code Observatory.
@@ -114,13 +123,9 @@ class FileMonitor:
                 )
 
             except Exception as e:
-                error = ProcessingError(
-                    error_type="StartupError",
-                    error_message=f"Failed to start FileMonitor: {str(e)}",
-                    component="FileMonitor",
-                )
-                logger.error(f"Startup error: {error}")
-                raise error
+                error_msg = f"Failed to start FileMonitor: {str(e)}"
+                logger.error(f"Startup error: {error_msg}")
+                raise FileMonitorError("StartupError", error_msg)
 
     def stop(self) -> None:
         """
@@ -152,13 +157,9 @@ class FileMonitor:
                 logger.info("FileMonitor stopped")
 
             except Exception as e:
-                error = ProcessingError(
-                    error_type="ShutdownError",
-                    error_message=f"Error stopping FileMonitor: {str(e)}",
-                    component="FileMonitor",
-                )
-                logger.error(f"Shutdown error: {error}")
-                raise error
+                error_msg = f"Error stopping FileMonitor: {str(e)}"
+                logger.error(f"Shutdown error: {error_msg}")
+                raise FileMonitorError("ShutdownError", error_msg)
 
     def _handle_file_event(self, file_event: FileEvent) -> None:
         """
@@ -256,7 +257,7 @@ class FileMonitor:
                 error_message=f"Error processing file event: {str(e)}",
                 component="FileMonitor",
                 original_event={
-                    "event_type": file_event.event_type.value,
+                    "event_type": file_event.event_type if isinstance(file_event.event_type, str) else file_event.event_type.value,
                     "src_path": str(file_event.src_path),
                 },
             )

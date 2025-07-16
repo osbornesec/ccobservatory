@@ -18,6 +18,13 @@ from app.models.contracts import ConversationData, ParsedMessage, ProcessingErro
 
 logger = logging.getLogger(__name__)
 
+
+class DatabaseWriterError(Exception):
+    """Exception raised by DatabaseWriter for database operation errors."""
+    def __init__(self, processing_error: ProcessingError):
+        self.processing_error = processing_error
+        super().__init__(processing_error.error_message)
+
 # Configuration constants
 CONVERSATIONS_TABLE = "conversations"
 MESSAGES_TABLE = "messages"
@@ -114,7 +121,7 @@ class DatabaseWriter:
 
             return True, conversation_id, metrics
 
-        except ProcessingError:
+        except DatabaseWriterError:
             self.stats["write_errors"] += 1
             raise
         except Exception as e:
@@ -126,7 +133,7 @@ class DatabaseWriter:
                 original_event={"session_id": conversation_data.session_id},
             )
             logger.error(f"Unexpected database error: {error}")
-            raise error
+            raise DatabaseWriterError(error)
 
     def _write_conversation_record(self, conversation_data: ConversationData) -> UUID:
         """
@@ -203,12 +210,13 @@ class DatabaseWriter:
                         f"Failed to write conversation for session_id: {conversation_data.session_id} "
                         f"after {MAX_RETRIES} attempts"
                     )
-                    raise ProcessingError(
+                    error = ProcessingError(
                         error_type="DatabaseError",
                         error_message=f"Failed to write conversation: {str(e)}",
                         component="DatabaseWriter",
                         original_event={"session_id": conversation_data.session_id},
-                    ) from e
+                    )
+                    raise DatabaseWriterError(error) from e
 
                 time.sleep(INITIAL_RETRY_DELAY_S * (2**attempt))  # Exponential backoff
 
@@ -261,12 +269,13 @@ class DatabaseWriter:
                         f"Failed to upsert messages for conversation_id: {conversation_id} "
                         f"after {MAX_RETRIES} attempts"
                     )
-                    raise ProcessingError(
+                    error = ProcessingError(
                         error_type="DatabaseError",
                         error_message=f"Failed to batch upsert messages: {str(e)}",
                         component="DatabaseWriter",
                         original_event={"conversation_id": str(conversation_id)},
-                    ) from e
+                    )
+                    raise DatabaseWriterError(error) from e
 
                 time.sleep(INITIAL_RETRY_DELAY_S * (2**attempt))
 

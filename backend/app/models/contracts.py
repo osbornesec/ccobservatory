@@ -13,7 +13,8 @@ from pathlib import Path
 from typing import Any, Generic, Literal, Optional, TypeVar
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, ConfigDict, field_validator, DirectoryPath
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator, DirectoryPath
+from pydantic_core import PydanticCustomError
 
 # --- Base Models & Configuration ---
 
@@ -81,19 +82,20 @@ class FileEvent(ContractBase):
         default_factory=datetime.utcnow, description="When the event was detected"
     )
 
-    @field_validator("dest_path")
-    @classmethod
-    def validate_dest_path_for_moved_event(
-        cls, v: Optional[Path], info
-    ) -> Optional[Path]:
+    @model_validator(mode='after')
+    def validate_dest_path_for_moved_event(self):
         """Enforce that dest_path is only present for 'moved' events."""
-        if hasattr(info, "data") and info.data:
-            event_type = info.data.get("event_type")
-            if event_type == FileSystemEventType.MOVED and v is None:
-                raise ValueError("dest_path is required for moved events")
-            if event_type != FileSystemEventType.MOVED and v is not None:
-                raise ValueError("dest_path is only allowed for moved events")
-        return v
+        if self.event_type == FileSystemEventType.MOVED and self.dest_path is None:
+            raise PydanticCustomError(
+                "dest_path_required",
+                "dest_path is required for moved events"
+            )
+        if self.event_type != FileSystemEventType.MOVED and self.dest_path is not None:
+            raise PydanticCustomError(
+                "dest_path_not_allowed",
+                "dest_path is only allowed for moved events"
+            )
+        return self
 
 
 # --- Claude Conversation Models ---

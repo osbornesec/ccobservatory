@@ -68,14 +68,26 @@ WEBSOCKET_HOST=localhost
 WEBSOCKET_PORT=8001
 
 # =============================================================================
-# FRONTEND CONFIGURATION
+# FRONTEND CONFIGURATION (SvelteKit)
 # =============================================================================
 # Frontend development server (SvelteKit)
 FRONTEND_PORT=5173
 FRONTEND_HOST=localhost
 
-# Public URL for frontend (used in production)
-PUBLIC_API_URL=http://localhost:8000
+# Frontend environment variables (must be prefixed with PUBLIC_)
+# These are available in the browser and should be added to frontend/.env.local
+PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key-here
+PUBLIC_API_BASE_URL=http://localhost:8000
+PUBLIC_WS_URL=ws://localhost:8000/ws
+PUBLIC_DEV_MODE=true
+PUBLIC_ENABLE_DEBUG_LOGS=true
+PUBLIC_ENABLE_ANALYTICS=true
+PUBLIC_ENABLE_REAL_TIME=true
+PUBLIC_ENABLE_SEARCH=true
+PUBLIC_REQUEST_TIMEOUT=10000
+PUBLIC_RECONNECT_INTERVAL=5000
+PUBLIC_MAX_RECONNECT_ATTEMPTS=10
 
 # =============================================================================
 # LOGGING CONFIGURATION

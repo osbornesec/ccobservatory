@@ -35,13 +35,13 @@ module.exports = {
 		'@typescript-eslint/explicit-function-return-type': 'off',
 		'@typescript-eslint/explicit-module-boundary-types': 'off',
 		'@typescript-eslint/prefer-const': 'error',
-		
+
 		// General rules
 		'no-console': ['warn', { allow: ['warn', 'error'] }],
 		'no-debugger': 'error',
 		'prefer-const': 'error',
 		'no-var': 'error',
-		
+
 		// Svelte rules
 		'svelte/no-at-html-tags': 'warn',
 		'svelte/no-target-blank': 'error'
