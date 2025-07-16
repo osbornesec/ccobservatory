@@ -1,0 +1,291 @@
+# CodeRabbit Configuration - Maximum Strictness and Information
+# This configuration enables all available tools with the most strict settings
+# for comprehensive code review and analysis
+
+# Review Instructions and Guidelines
+reviews:
+  # High-level review instructions
+  instructions: |
+    You are conducting a comprehensive security-focused code review for a production system.
+    Apply the highest standards for:
+    
+    - **Security**: Identify all potential vulnerabilities, injection attacks, authentication/authorization flaws
+    - **Performance**: Flag inefficient algorithms, memory leaks, database N+1 queries, blocking operations
+    - **Maintainability**: Enforce clean code principles, proper error handling, comprehensive logging
+    - **Testing**: Ensure adequate test coverage, proper mocking, edge case handling
+    - **Documentation**: Require complete docstrings, inline comments for complex logic
+    - **Architecture**: Validate design patterns, separation of concerns, dependency management
+    - **Compliance**: Check for OWASP Top 10, PCI DSS, GDPR compliance where applicable
+    
+    Use the most assertive analysis profile. No issue is too minor to report.
+    Provide detailed explanations and concrete fix suggestions for every finding.
+
+  # Path-specific review instructions for maximum coverage
+  path_instructions:
+    # Python Backend Files
+    - path: "backend/**/*.py"
+      instructions: |
+        Apply strict Python review standards:
+        - Follow PEP 8, PEP 257, and Python security best practices
+        - Validate all input parameters and sanitize user inputs
+        - Check for SQL injection, command injection, and path traversal vulnerabilities
+        - Ensure proper exception handling with specific exception types
+        - Verify async/await usage is correct and non-blocking
+        - Check for proper logging without exposing sensitive data
+        - Validate database queries for performance (N+1 problems, missing indexes)
+        - Ensure proper authentication/authorization checks
+        - Check for hardcoded credentials, secrets, or configuration
+        - Validate proper use of type hints and docstrings
+        - Check for proper resource cleanup (file handles, database connections)
+
+    # Frontend JavaScript/TypeScript Files
+    - path: "frontend/**/*.{js,ts,tsx,svelte}"
+      instructions: |
+        Apply strict frontend security and performance standards:
+        - Check for XSS vulnerabilities and proper input sanitization
+        - Validate proper CSP headers and security configurations
+        - Ensure no sensitive data exposure in client-side code
+        - Check for proper authentication token handling
+        - Validate proper error handling without information disclosure
+        - Check performance issues: unnecessary re-renders, memory leaks, large bundle sizes
+        - Ensure proper accessibility (WCAG 2.1 compliance)
+        - Validate proper TypeScript usage with strict mode
+        - Check for proper async/await and promise handling
+        - Ensure proper component lifecycle management
+        - Validate proper state management patterns
+
+    # Database and Migration Files
+    - path: "**/{migrations,supabase}/**/*.sql"
+      instructions: |
+        Apply strict database security and performance standards:
+        - Check for SQL injection vulnerabilities in dynamic queries
+        - Validate proper indexing strategies for performance
+        - Ensure proper foreign key constraints and data integrity
+        - Check for missing security policies (RLS in Supabase)
+        - Validate proper backup and rollback strategies
+        - Ensure no sensitive data in migration files
+        - Check for proper transaction handling
+        - Validate proper database normalization
+
+    # Configuration and Infrastructure Files
+    - path: "**/*.{yml,yaml,json,toml,ini}"
+      instructions: |
+        Apply strict configuration security standards:
+        - Check for hardcoded secrets, passwords, or API keys
+        - Validate proper environment variable usage
+        - Ensure secure default configurations
+        - Check for proper access controls and permissions
+        - Validate proper CORS, CSP, and security headers
+        - Ensure no debug mode in production configurations
+        - Check for proper backup and disaster recovery settings
+
+    # Docker and Container Files
+    - path: "**/Dockerfile*"
+      instructions: |
+        Apply strict container security standards:
+        - Check for base image vulnerabilities and outdated packages
+        - Ensure non-root user execution
+        - Validate proper secret management (no hardcoded secrets)
+        - Check for minimal image size and unnecessary packages
+        - Ensure proper health checks and monitoring
+        - Validate proper resource limits and security contexts
+
+    # Test Files
+    - path: "**/{test,tests,spec}/**/*.{py,js,ts,tsx}"
+      instructions: |
+        Apply strict testing standards:
+        - Ensure comprehensive test coverage (unit, integration, E2E)
+        - Check for proper test isolation and cleanup
+        - Validate proper mocking and stubbing
+        - Ensure edge cases and error conditions are tested
+        - Check for security test cases (authentication, authorization)
+        - Validate performance test coverage
+        - Ensure proper test data management (no real data in tests)
+
+    # GitHub Actions and CI/CD
+    - path: ".github/**/*.{yml,yaml}"
+      instructions: |
+        Apply strict CI/CD security standards:
+        - Check for proper secret management in workflows
+        - Validate proper permission scoping
+        - Ensure no hardcoded tokens or credentials
+        - Check for proper security scanning and testing
+        - Validate proper artifact management and signing
+        - Ensure proper branch protection and approval processes
+
+  # AST-grep tool configuration for advanced code analysis
+  tools:
+    ast-grep:
+      essential_rules: true  # Enable essential security rules
+      rule_dirs:
+        - "rules"
+        - "security-rules"
+      util_dirs:
+        - "utils"
+        - "helpers"
+      packages:
+        - "coderabbitai/security-patterns"  # Security-focused rule packages
+        - "coderabbitai/performance-patterns"  # Performance rule packages
+
+# Code Generation Configuration
+code_generation:
+  # Docstring generation for all code files
+  docstrings:
+    path_instructions:
+      - path: "**/*.py"
+        instructions: |
+          Generate comprehensive docstrings following Google style:
+          - Include detailed parameter descriptions with types
+          - Document return values and exceptions
+          - Add usage examples for complex functions
+          - Include security considerations where applicable
+          - Add performance notes for critical functions
+          - End with "Auto-generated by CodeRabbit."
+
+      - path: "**/*.{js,ts,tsx}"
+        instructions: |
+          Generate comprehensive JSDoc documentation:
+          - Include detailed parameter and return type information
+          - Document async behavior and Promise handling
+          - Add usage examples for complex functions
+          - Include security and performance considerations
+          - Document component props and events for UI components
+          - End with "Auto-generated by CodeRabbit."
+
+      - path: "**/*.svelte"
+        instructions: |
+          Generate comprehensive Svelte component documentation:
+          - Document all props, events, and slots
+          - Include accessibility considerations
+          - Document reactive statements and stores usage
+          - Add usage examples and integration notes
+          - Include performance considerations
+          - End with "Auto-generated by CodeRabbit."
+
+# Analysis Profile Settings (Most Strict)
+# Note: These would be configured via environment or API settings
+# for tools like ShellCheck, Cppcheck, etc.
+
+# Custom Review Patterns (if supporting custom rules)
+custom_patterns:
+  security:
+    - pattern: "password|secret|key|token"
+      message: "Potential hardcoded credential detected"
+      severity: "critical"
+    
+    - pattern: "eval\\(|exec\\(|system\\("
+      message: "Dangerous code execution function detected"
+      severity: "critical"
+    
+    - pattern: "SELECT.*FROM.*WHERE.*=.*\\$"
+      message: "Potential SQL injection vulnerability"
+      severity: "high"
+
+  performance:
+    - pattern: "for.*in.*range\\(len\\("
+      message: "Use enumerate() instead of range(len()) for better performance"
+      severity: "medium"
+    
+    - pattern: "\\.map\\(.*\\)\\.map\\("
+      message: "Multiple chained maps detected - consider combining for performance"
+      severity: "medium"
+
+  maintainability:
+    - pattern: "# TODO|# FIXME|# HACK"
+      message: "Technical debt comment detected - create issue to track"
+      severity: "low"
+
+# Integration Settings
+integrations:
+  # Enable all available integrations for maximum information
+  enable_metrics: true
+  enable_learnings: true
+  enable_web_search: true
+  
+  # Issue tracking integration
+  jira:
+    link_detection: true
+    create_issues: true
+  
+  linear:
+    link_detection: true
+    create_issues: true
+
+# Report Configuration for Maximum Detail
+reports:
+  # Weekly comprehensive reports
+  weekly:
+    enabled: true
+    template: |
+      Provide comprehensive weekly analysis including:
+      - Security vulnerability summary with CVSS scores
+      - Performance issues and optimization opportunities
+      - Code quality metrics and technical debt
+      - Test coverage analysis and gaps
+      - Dependency security audit results
+      - Compliance checklist status
+      - Team productivity metrics
+      - Actionable recommendations prioritized by risk/impact
+
+  # On-demand detailed reports
+  on_demand:
+    enabled: true
+    include_all_findings: true
+    include_metrics: true
+    include_recommendations: true
+
+# Advanced Configuration
+advanced:
+  # Maximum analysis depth
+  analysis_depth: "comprehensive"
+  
+  # Include all tool outputs
+  include_tool_outputs: true
+  
+  # Enable experimental features
+  experimental_features: true
+  
+  # Timeout for long-running analysis
+  analysis_timeout: 600  # 10 minutes for comprehensive analysis
+
+# Language-Specific Settings
+language_settings:
+  python:
+    version: "3.11+"
+    style_guide: "google"
+    security_profile: "strict"
+    performance_checks: true
+    type_checking: "strict"
+  
+  typescript:
+    version: "5.0+"
+    strict_mode: true
+    security_checks: true
+    performance_analysis: true
+  
+  javascript:
+    es_version: "2023"
+    security_checks: true
+    performance_analysis: true
+  
+  sql:
+    dialect: "postgresql"
+    security_checks: true
+    performance_analysis: true
+
+# Notification Settings for Maximum Visibility
+notifications:
+  # Immediate alerts for critical issues
+  critical_issues:
+    enabled: true
+    channels: ["pr_comments", "slack", "email"]
+  
+  # Daily summaries
+  daily_summary:
+    enabled: true
+    include_metrics: true
+  
+  # Weekly detailed reports
+  weekly_report:
+    enabled: true
+    comprehensive: true
