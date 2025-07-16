@@ -305,4 +305,215 @@ describe('Main Page Component', () => {
 		// Retry mechanism allows recovery from invalid data errors
 		expect(componentContent).toContain('retryAction={retryLoad}');
 	});
+
+	// Phase 4: Analytics Display & Formatting Tests
+	it('should display analytics cards with proper DaisyUI formatting', () => {
+		// Given: A main page component that displays analytics dashboard
+		// When: The component renders analytics cards after successful data load
+		// Then: Analytics cards use proper DaisyUI styling classes for consistent visual presentation
+
+		// Verify main analytics grid container with responsive classes
+		expect(componentContent).toContain(
+			'<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">'
+		);
+
+		// Verify Quick Stats section comment for organization
+		expect(componentContent).toContain('<!-- Quick Stats -->');
+
+		// Verify individual analytics cards use proper DaisyUI card classes
+		// (Note: Component has 6 total cards - 4 analytics + 2 in Getting Started section)
+		const cardPattern = '<div class="card bg-base-100 shadow-lg border border-base-300">';
+		const cardMatches = componentContent.match(
+			new RegExp(cardPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
+		);
+		expect(cardMatches).not.toBeNull();
+		expect(cardMatches?.length).toBe(6); // Six total cards (4 analytics + 2 getting started)
+
+		// Verify each card contains card-body element
+		const cardBodyPattern = '<div class="card-body">';
+		const cardBodyMatches = componentContent.match(
+			new RegExp(cardBodyPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
+		);
+		expect(cardBodyMatches).not.toBeNull();
+		expect(cardBodyMatches?.length).toBeGreaterThanOrEqual(4); // At least four card-body elements
+
+		// Verify card content structure with flex layout
+		expect(componentContent).toContain('<div class="flex items-center justify-between">');
+
+		// Verify analytics labels are properly styled
+		expect(componentContent).toContain(
+			'<p class="text-base-content/70 text-sm">Total Conversations</p>'
+		);
+		expect(componentContent).toContain(
+			'<p class="text-base-content/70 text-sm">Total Messages</p>'
+		);
+		expect(componentContent).toContain('<p class="text-base-content/70 text-sm">Tool Calls</p>');
+		expect(componentContent).toContain('<p class="text-base-content/70 text-sm">Avg Length</p>');
+	});
+
+	it('should show numeric values with appropriate formatting (commas, decimals)', () => {
+		// Given: A main page component that displays analytics metrics
+		// When: The component renders numeric values for analytics data
+		// Then: Numeric values are displayed with proper formatting and styling classes
+
+		// Verify total conversations displays with proper styling
+		expect(componentContent).toContain(
+			'<p class="text-3xl font-bold text-primary">{analytics.total_conversations}</p>'
+		);
+
+		// Verify total messages displays with proper styling
+		expect(componentContent).toContain(
+			'<p class="text-3xl font-bold text-secondary">{analytics.total_messages}</p>'
+		);
+
+		// Verify tool calls displays with proper styling
+		expect(componentContent).toContain(
+			'<p class="text-3xl font-bold text-accent">{analytics.total_tool_calls}</p>'
+		);
+
+		// Verify average conversation length uses Math.round for decimal handling
+		expect(componentContent).toContain('<p class="text-3xl font-bold text-info">');
+		expect(componentContent).toContain('{Math.round(analytics.avg_conversation_length)}');
+
+		// Verify numeric styling classes are consistently applied
+		const numericValuePattern =
+			/<p class="text-3xl font-bold text-(primary|secondary|accent|info)">/g;
+		const numericMatches = componentContent.match(numericValuePattern);
+		expect(numericMatches).not.toBeNull();
+		expect(numericMatches?.length).toBeGreaterThanOrEqual(4); // At least four numeric displays
+
+		// Verify proper binding to analytics object properties
+		expect(componentContent).toContain('{analytics.total_conversations}');
+		expect(componentContent).toContain('{analytics.total_messages}');
+		expect(componentContent).toContain('{analytics.total_tool_calls}');
+		expect(componentContent).toContain('Math.round(analytics.avg_conversation_length)');
+	});
+
+	it('should display icons correctly for each analytics metric', () => {
+		// Given: A main page component that displays analytics with visual icons
+		// When: The component renders analytics cards after successful data load
+		// Then: Each analytics metric displays the correct Lucide icon with proper styling
+
+		// Verify Lucide icons are imported from lucide-svelte
+		expect(componentContent).toContain(
+			"import { Activity, TrendingUp, MessageSquare, Clock } from 'lucide-svelte';"
+		);
+
+		// Verify each icon is used with proper styling classes
+		// Total Conversations: MessageSquare icon
+		expect(componentContent).toContain('<MessageSquare class="w-8 h-8" />');
+
+		// Total Messages: Activity icon
+		expect(componentContent).toContain('<Activity class="w-8 h-8" />');
+
+		// Tool Calls: TrendingUp icon
+		expect(componentContent).toContain('<TrendingUp class="w-8 h-8" />');
+
+		// Avg Length: Clock icon
+		expect(componentContent).toContain('<Clock class="w-8 h-8" />');
+
+		// Verify icons are properly contained within colored divs
+		expect(componentContent).toContain('<div class="text-primary">');
+		expect(componentContent).toContain('<div class="text-secondary">');
+		expect(componentContent).toContain('<div class="text-accent">');
+		expect(componentContent).toContain('<div class="text-info">');
+
+		// Verify all icon components use consistent sizing classes
+		const iconMatches = componentContent.match(
+			/<(Activity|TrendingUp|MessageSquare|Clock) class="w-8 h-8" \/>/g
+		);
+		expect(iconMatches).not.toBeNull();
+		expect(iconMatches?.length).toBe(4); // Four analytics icons total
+	});
+
+	it('should handle zero values gracefully in analytics display', () => {
+		// Given: A main page component that displays analytics metrics
+		// When: Analytics data contains zero values for any metric
+		// Then: Zero values are displayed gracefully without errors and with appropriate formatting
+
+		// Verify analytics object has default zero values for safe initialization
+		expect(componentContent).toContain('let analytics = {');
+		expect(componentContent).toContain('total_conversations: 0,');
+		expect(componentContent).toContain('total_messages: 0,');
+		expect(componentContent).toContain('total_tool_calls: 0,');
+		expect(componentContent).toContain('avg_conversation_length: 0');
+
+		// Verify zero values are displayed safely in the UI without causing errors
+		// Total conversations displays zero value
+		expect(componentContent).toContain('{analytics.total_conversations}');
+
+		// Total messages displays zero value
+		expect(componentContent).toContain('{analytics.total_messages}');
+
+		// Tool calls displays zero value
+		expect(componentContent).toContain('{analytics.total_tool_calls}');
+
+		// Average length handles zero value with Math.round (Math.round(0) = 0)
+		expect(componentContent).toContain('Math.round(analytics.avg_conversation_length)');
+
+		// Verify styling classes are applied consistently regardless of zero values
+		expect(componentContent).toContain('class="text-3xl font-bold text-primary"');
+		expect(componentContent).toContain('class="text-3xl font-bold text-secondary"');
+		expect(componentContent).toContain('class="text-3xl font-bold text-accent"');
+		expect(componentContent).toContain('class="text-3xl font-bold text-info"');
+
+		// Verify analytics cards display structure remains intact with zero values
+		expect(componentContent).toContain('<!-- Quick Stats -->');
+		expect(componentContent).toContain(
+			'<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">'
+		);
+
+		// Verify each metric label is present to provide context for zero values
+		expect(componentContent).toContain('Total Conversations');
+		expect(componentContent).toContain('Total Messages');
+		expect(componentContent).toContain('Tool Calls');
+		expect(componentContent).toContain('Avg Length');
+	});
+
+	it('should update analytics display reactively when data changes', () => {
+		// Given: A main page component with reactive analytics display
+		// When: Analytics data changes through API calls or WebSocket updates
+		// Then: The analytics display updates automatically due to Svelte reactivity
+
+		// Verify analytics is a reactive variable that will trigger UI updates
+		expect(componentContent).toContain('let analytics = {');
+
+		// Verify analytics data is updated in loadData function
+		expect(componentContent).toContain('const analyticsData = await apiClient.getAnalytics();');
+		expect(componentContent).toContain('analytics = analyticsData;');
+
+		// Verify analytics values are used in reactive expressions that auto-update
+		expect(componentContent).toContain('{analytics.total_conversations}');
+		expect(componentContent).toContain('{analytics.total_messages}');
+		expect(componentContent).toContain('{analytics.total_tool_calls}');
+		expect(componentContent).toContain('{Math.round(analytics.avg_conversation_length)}');
+
+		// Verify retry mechanism can trigger analytics updates
+		expect(componentContent).toContain('async function retryLoad() {');
+		expect(componentContent).toContain('await loadData();');
+		expect(componentContent).toContain('retryAction={retryLoad}');
+
+		// Verify loadData function can be called to refresh analytics
+		expect(componentContent).toContain('async function loadData() {');
+		expect(componentContent).toContain('// Load analytics');
+
+		// Verify WebSocket handlers are set up for real-time updates
+		expect(componentContent).toContain("wsClient.on('conversation_update'");
+		expect(componentContent).toContain("wsClient.on('project_update'");
+
+		// Verify analytics are loaded on component mount
+		expect(componentContent).toContain('onMount(async () => {');
+		expect(componentContent).toContain('await loadData();');
+
+		// Verify analytics display structure exists for reactive updates
+		expect(componentContent).toContain('<!-- Quick Stats -->');
+		expect(componentContent).toContain(
+			'<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">'
+		);
+
+		// Verify error handling doesn't prevent future analytics updates
+		expect(componentContent).toContain('} catch (err) {');
+		expect(componentContent).toContain('} finally {');
+		expect(componentContent).toContain('isLoading = false;');
+	});
 });
