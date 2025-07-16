@@ -1139,4 +1139,116 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('analytics = analyticsData;');
 	});
 
+	// Phase 11: Accessibility & User Experience Tests
+	it('should provide proper semantic HTML structure with WCAG 2.1 compliant landmarks', () => {
+		// Given: A main page component that serves as the application dashboard
+		// When: The component renders with proper semantic HTML structure
+		// Then: WCAG 2.1 landmarks and semantic elements are correctly implemented
+
+		// Main landmark provides primary content area (WCAG 2.4.1)
+		expect(componentContent).toContain('<main class="flex-1 overflow-auto">');
+
+		// Heading hierarchy follows WCAG 2.4.6 guidelines
+		expect(componentContent).toContain('<h1 class="text-3xl font-bold text-base-content mb-2">');
+		expect(componentContent).toContain('Welcome to Claude Code Observatory');
+		expect(componentContent).toContain('<h2 class="card-title text-base-content">');
+
+		// Descriptive page title for screen readers (WCAG 2.4.2)
+		expect(componentContent).toContain('<svelte:head>');
+		expect(componentContent).toContain('<title>Claude Code Observatory</title>');
+
+		// Meta description for search engines and accessibility tools
+		expect(componentContent).toContain(
+			'<meta name="description" content="Real-time observability for Claude Code interactions" />'
+		);
+
+		// Semantic HTML structure with proper nesting
+		expect(componentContent).toContain('<div class="min-h-screen bg-base-100">');
+		expect(componentContent).toContain('<div class="flex h-[calc(100vh-4rem)]">');
+
+		// Header and Sidebar components provide navigation landmarks
+		expect(componentContent).toContain('<Header />');
+		expect(componentContent).toContain('<Sidebar />');
+	});
+
+	it('should provide accessible navigation with proper link text and keyboard support', () => {
+		// Given: A main page component with navigation links
+		// When: The component renders navigation elements
+		// Then: Links have descriptive text and proper accessibility attributes
+
+		// Navigation links use descriptive text (WCAG 2.4.4)
+		expect(componentContent).toContain('<a href="/conversations" class="btn btn-primary">View Conversations</a>');
+		expect(componentContent).toContain('<a href="/settings" class="btn btn-outline">Settings</a>');
+
+		// Link text is meaningful and describes the destination
+		expect(componentContent).toContain('>View Conversations<');
+		expect(componentContent).toContain('>Settings<');
+
+		// Navigation structure uses proper semantic HTML
+		expect(componentContent).toContain('<div class="card-actions justify-end mt-4">');
+
+		// Button styling maintains accessibility with proper contrast
+		expect(componentContent).toContain('class="btn btn-primary"');
+		expect(componentContent).toContain('class="btn btn-outline"');
+
+		// Links are keyboard accessible by default with href attributes
+		expect(componentContent).toContain('href="/conversations"');
+		expect(componentContent).toContain('href="/settings"');
+	});
+
+	it('should provide accessible loading states with proper screen reader feedback', () => {
+		// Given: A main page component with loading states
+		// When: The component displays loading indicators
+		// Then: Loading states are properly announced to screen readers
+
+		// Loading spinner has descriptive text for screen readers
+		expect(componentContent).toContain('<LoadingSpinner size="lg" text="Loading dashboard..." />');
+
+		// Loading state uses proper conditional rendering
+		expect(componentContent).toContain('{#if isLoading}');
+
+		// Loading container provides proper layout structure
+		expect(componentContent).toContain('<div class="flex items-center justify-center h-full">');
+
+		// Loading text is descriptive and informative
+		expect(componentContent).toContain('text="Loading dashboard..."');
+
+		// Loading state prevents interaction with incomplete content
+		expect(componentContent).toContain('{:else if error}');
+		expect(componentContent).toContain('{:else}');
+
+		// Loading component is imported properly
+		expect(componentContent).toContain("import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';");
+	});
+
+	it('should provide accessible error messaging with proper user guidance', () => {
+		// Given: A main page component that handles errors
+		// When: The component displays error messages
+		// Then: Error messages are accessible and provide actionable guidance
+
+		// Error message component has descriptive title and message
+		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+
+		// Error message provides clear context about the failure
+		expect(componentContent).toContain('title="Failed to Load Dashboard"');
+
+		// Error message includes actionable recovery option
+		expect(componentContent).toContain('retryAction={retryLoad}');
+
+		// Error state is properly scoped and isolated
+		expect(componentContent).toContain('{:else if error}');
+		expect(componentContent).toContain('<div class="p-8">');
+
+		// Error component is imported properly
+		expect(componentContent).toContain("import ErrorMessage from '$lib/components/ErrorMessage.svelte';");
+
+		// Error variable is properly typed for accessibility
+		expect(componentContent).toContain('let error: string | null = null;');
+
+		// Error messages are user-friendly and informative
+		expect(componentContent).toContain(
+			"error = err instanceof Error ? err.message : 'Failed to initialize application';"
+		);
+	});
+
 });
