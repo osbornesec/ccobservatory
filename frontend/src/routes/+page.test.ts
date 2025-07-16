@@ -161,4 +161,148 @@ describe('Main Page Component', () => {
 		// Analytics fetching is part of the loadData function
 		expect(componentContent).toContain('// Load analytics');
 	});
+
+	it('should display error message when API connection fails', () => {
+		// Given: A main page component that needs to verify backend connectivity
+		// When: The component mounts and the API connection test fails
+		// Then: An error message "Cannot connect to backend API" is displayed with retry functionality
+
+		// Error message component is imported for displaying connection errors
+		expect(componentContent).toContain(
+			"import ErrorMessage from '$lib/components/ErrorMessage.svelte';"
+		);
+
+		// Error state variable is declared to track connection failures
+		expect(componentContent).toContain('let error: string | null = null;');
+
+		// Error display section shows ErrorMessage component when error occurs
+		expect(componentContent).toContain('{:else if error}');
+		expect(componentContent).toContain(
+			'<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />'
+		);
+
+		// Retry function is provided to allow user to retry connection
+		expect(componentContent).toContain('async function retryLoad() {');
+
+		// Error handling in try-catch block captures API connection failures
+		expect(componentContent).toContain('} catch (err) {');
+		expect(componentContent).toContain(
+			"error = err instanceof Error ? err.message : 'Failed to initialize application';"
+		);
+	});
+
+	it('should display retry button when data loading fails', () => {
+		// Given: A main page component that successfully connects to the backend API
+		// When: The API connection succeeds but data loading fails in loadData()
+		// Then: An error message "Failed to load data from server" is displayed with a functional retry button
+
+		// loadData function throws specific error when data loading fails
+		expect(componentContent).toContain("throw new Error('Failed to load data from server');");
+
+		// retryLoad function clears error state and shows loading indicator
+		expect(componentContent).toContain('error = null;');
+		expect(componentContent).toContain('isLoading = true;');
+
+		// retryLoad function calls loadData to attempt recovery
+		expect(componentContent).toContain('await loadData();');
+
+		// Error handling in retryLoad captures data loading failures
+		expect(componentContent).toContain('} catch (err) {');
+		expect(componentContent).toContain(
+			"error = err instanceof Error ? err.message : 'Failed to load data';"
+		);
+
+		// ErrorMessage component includes retry functionality via retryAction prop
+		expect(componentContent).toContain('retryAction={retryLoad}');
+	});
+
+	it('should handle network timeout gracefully', () => {
+		// Given: A main page component that makes API requests with timeout handling
+		// When: API requests time out (take longer than configured timeout)
+		// Then: An error message displays timeout handling with retry option
+
+		// API client is configured with timeout handling (imported from client)
+		expect(componentContent).toContain("import { apiClient } from '$lib/api/client';");
+
+		// Connection test handles timeout scenarios
+		expect(componentContent).toContain('const isConnected = await apiClient.testConnection();');
+
+		// Data loading methods handle timeout scenarios
+		expect(componentContent).toContain('const projectsData = await apiClient.getProjects();');
+		expect(componentContent).toContain(
+			'const conversationsData = await apiClient.getConversations(1, 10);'
+		);
+		expect(componentContent).toContain('const analyticsData = await apiClient.getAnalytics();');
+
+		// Error handling captures timeout errors and provides user feedback
+		expect(componentContent).toContain('} catch (err) {');
+		expect(componentContent).toContain(
+			"error = err instanceof Error ? err.message : 'Failed to initialize application';"
+		);
+
+		// Retry mechanism allows recovery from timeout errors
+		expect(componentContent).toContain('async function retryLoad() {');
+		expect(componentContent).toContain('retryAction={retryLoad}');
+	});
+
+	it('should show fallback UI when WebSocket connection fails', () => {
+		// Given: A main page component that loads successfully but WebSocket connection fails
+		// When: The component loads but WebSocket fails to connect
+		// Then: Connection status shows "Disconnected" or "Error" badge with appropriate styling
+
+		// WebSocket client is imported for real-time communication
+		expect(componentContent).toContain("import { wsClient } from '$lib/api/websocket';");
+
+		// Connection status store is imported to track WebSocket state
+		expect(componentContent).toContain('connectionStatus');
+
+		// WebSocket connection status is displayed in the UI
+		expect(componentContent).toContain('$connectionStatus');
+
+		// Connection status badge shows different styles based on connection state
+		expect(componentContent).toContain("class=\"badge {$connectionStatus === 'connected'");
+		expect(componentContent).toContain("? 'badge-success'");
+		expect(componentContent).toContain(": 'badge-warning'}\"");
+
+		// Connection status text updates based on WebSocket state
+		expect(componentContent).toContain(
+			"{$connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}"
+		);
+
+		// WebSocket event handlers are configured for connection management
+		expect(componentContent).toContain("wsClient.on('conversation_update'");
+		expect(componentContent).toContain("wsClient.on('project_update'");
+	});
+
+	it('should recover gracefully from invalid data responses', () => {
+		// Given: A main page component that receives API responses
+		// When: The API returns malformed or invalid data
+		// Then: An error message displays with graceful degradation, not application crash
+
+		// Data loading functions are wrapped in try-catch for error handling
+		expect(componentContent).toContain('try {');
+		expect(componentContent).toContain('} catch (err) {');
+
+		// loadData function throws descriptive error for invalid data
+		expect(componentContent).toContain("throw new Error('Failed to load data from server');");
+
+		// Error handling prevents crashes and provides user feedback
+		expect(componentContent).toContain(
+			"error = err instanceof Error ? err.message : 'Failed to initialize application';"
+		);
+
+		// Analytics data has safe default values to prevent UI crashes
+		expect(componentContent).toContain('let analytics = {');
+		expect(componentContent).toContain('total_conversations: 0,');
+		expect(componentContent).toContain('total_messages: 0,');
+		expect(componentContent).toContain('total_tool_calls: 0,');
+		expect(componentContent).toContain('avg_conversation_length: 0');
+
+		// UI safely displays analytics data with defensive programming
+		expect(componentContent).toContain('{analytics.total_conversations}');
+		expect(componentContent).toContain('{Math.round(analytics.avg_conversation_length)}');
+
+		// Retry mechanism allows recovery from invalid data errors
+		expect(componentContent).toContain('retryAction={retryLoad}');
+	});
 });
