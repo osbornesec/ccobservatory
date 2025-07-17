@@ -16,8 +16,7 @@ import json
 import time
 import psutil
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from typing import List, Dict, Any
+from unittest.mock import AsyncMock, MagicMock
 
 from app.websocket.broadcast import BroadcastManager
 
