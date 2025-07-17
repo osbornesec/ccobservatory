@@ -61,7 +61,20 @@ class BroadcastManager:
                 if hasattr(connection, 'closed') and connection.closed:
                     return connection_id
                     
-                await connection.send(message)
+async def send_to_connection(connection_id: str, connection: Any) -> Optional[str]:
+    try:
+        if hasattr(connection, 'closed') and connection.closed:
+            return connection_id
+
+        if not hasattr(connection, 'send'):
+            logger.error(f"Connection {connection_id} does not have send method")
+            return connection_id
+
+        await connection.send(message)
+        return None
+    except Exception as e:
+        logger.warning(f"Failed to send message to connection {connection_id}: {e}")
+        return connection_id
                 return None
             except Exception as e:
                 logger.warning(f"Failed to send message to connection {connection_id}: {e}")
