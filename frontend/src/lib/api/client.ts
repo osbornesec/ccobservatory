@@ -66,7 +66,7 @@ public async post<T>(endpoint: string, data?: Record<string, unknown>): Promise<
 	/**
 	 * PUT request
 	 */
-	public async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+	public async put<T>(endpoint: string, data?: Record<string, unknown>): Promise<ApiResponse<T>> {
 		const response = await this.request(endpoint, {
 			method: 'PUT',
 			body: data ? JSON.stringify(data) : undefined
