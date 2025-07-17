@@ -196,8 +196,8 @@ class DashboardService {
 			
 			// Load projects and conversations in parallel
 			const [projectsResponse, conversationsResponse] = await Promise.all([
-				apiClient.get('/projects'),
-				apiClient.get('/conversations')
+				apiClient.get<Project[]>('/projects'),
+				apiClient.get<Conversation[]>('/conversations')
 			]);
 			
 			// Update stores
