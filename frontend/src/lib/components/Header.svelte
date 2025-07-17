@@ -32,7 +32,6 @@
 <header 
 	id="page-header"
 	class="bg-base-200 border-b border-base-300"
-	role="banner"
 	aria-label="Claude Code Observatory main header"
 >
 	<div class="container mx-auto px-6 py-4">
@@ -60,7 +59,6 @@
 				<nav 
 					id="primary-navigation"
 					class="ml-auto"
-					role="navigation"
 					aria-label="Primary site navigation"
 				>
 					<ul class="flex space-x-4">
@@ -103,7 +101,6 @@
 		{#if currentPage && currentPage !== 'Dashboard'}
 			<nav 
 				class="mt-2"
-				role="navigation"
 				aria-label="Breadcrumb navigation"
 			>
 				<ol class="flex items-center space-x-2 text-sm text-base-content/70">
@@ -145,7 +142,7 @@
 	/* Enhanced focus styles for better accessibility */
 	a:focus,
 	h1:focus {
-		outline: 2px solid theme('colors.primary');
+		outline: 2px solid hsl(var(--p));
 		outline-offset: 2px;
 	}
 
@@ -173,7 +170,7 @@
 	@media (prefers-color-scheme: dark) {
 		a:focus,
 		h1:focus {
-			outline-color: theme('colors.primary-content');
+			outline-color: hsl(var(--pc));
 		}
 	}
 </style>

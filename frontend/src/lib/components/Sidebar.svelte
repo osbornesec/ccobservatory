@@ -105,10 +105,7 @@
 	bind:this={sidebarElement}
 	class="w-64 bg-base-200 border-r border-base-300 {collapsed ? 'w-16' : 'w-64'} transition-all duration-200"
 	class:collapsed
-	role="complementary"
 	aria-label="Main site navigation sidebar"
-	aria-expanded={!collapsed}
-	on:keydown={handleKeyDown}
 	data-testid="sidebar"
 >
 	<!-- Sidebar header with toggle button -->
@@ -148,6 +145,8 @@
 			id="sidebar-nav"
 			class="space-y-2"
 			aria-label="Sidebar navigation menu"
+			on:keydown={handleKeyDown}
+			tabindex="-1"
 		>
 			<!-- Navigation items list -->
 			<ul class="space-y-1">
@@ -258,7 +257,7 @@
 	/* Enhanced focus styles for better accessibility */
 	aside button:focus,
 	aside a:focus {
-		box-shadow: 0 0 0 2px theme('colors.primary');
+		box-shadow: 0 0 0 2px hsl(var(--p));
 	}
 
 	/* Collapsed sidebar specific styles */
@@ -301,7 +300,7 @@
 	@media (prefers-color-scheme: dark) {
 		aside button:focus,
 		aside a:focus {
-			box-shadow: 0 0 0 2px theme('colors.primary-content');
+			box-shadow: 0 0 0 2px hsl(var(--pc));
 		}
 	}
 

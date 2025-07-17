@@ -82,17 +82,21 @@ describe('WebSocket Resilience Integration Tests', () => {
 		// Store original WebSocket
 		originalWebSocket = global.WebSocket;
 
-		// Mock WebSocket constructor
-		global.WebSocket = vi.fn().mockImplementation((url: string) => {
+		// Mock WebSocket constructor and set up constants properly
+		const MockWebSocketConstructor = vi.fn().mockImplementation((url: string) => {
 			mockWebSocket = new MockWebSocket(url);
 			return mockWebSocket;
-		}) as any;
+		});
 
-		// Set WebSocket constants
-		global.WebSocket.CONNECTING = MockWebSocket.CONNECTING;
-		global.WebSocket.OPEN = MockWebSocket.OPEN;
-		global.WebSocket.CLOSING = MockWebSocket.CLOSING;
-		global.WebSocket.CLOSED = MockWebSocket.CLOSED;
+		// Add constants to the constructor function (with type assertion)
+		Object.assign(MockWebSocketConstructor, {
+			CONNECTING: MockWebSocket.CONNECTING,
+			OPEN: MockWebSocket.OPEN,
+			CLOSING: MockWebSocket.CLOSING,
+			CLOSED: MockWebSocket.CLOSED
+		});
+
+		global.WebSocket = MockWebSocketConstructor as any;
 
 		// Create fresh WebSocket client
 		wsClient = new WebSocketClient();

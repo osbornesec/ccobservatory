@@ -46,7 +46,8 @@ class DashboardService {
 	public async initialize(): Promise<{ analytics: Analytics }> {
 		if (this.initialized) {
 			logWarn('Dashboard service already initialized');
-			return this.loadInitialData();
+			const analytics = await this.loadInitialData();
+			return { analytics };
 		}
 
 		if (!browser) {
