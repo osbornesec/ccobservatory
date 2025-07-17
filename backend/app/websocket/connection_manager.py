@@ -129,9 +129,14 @@ class ConnectionManager:
             for client_id, websocket in self.active_connections.items():
                 try:
                     await websocket.send_text(message_json)
+                try:
+                    await websocket.send_text(message_json)
                 except (WebSocketDisconnect, RuntimeError):
                     # Client disconnected or connection error, track failure and continue
                     failed_clients.append(client_id)
+                    # Clean up disconnected client
+                    self.disconnect(client_id)
+                    continue
                     continue
         else:
             # Collect all client IDs that should receive this message

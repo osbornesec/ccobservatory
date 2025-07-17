@@ -8,11 +8,11 @@ to subscribed clients.
 import pytest
 import asyncio
 import time
-from unittest.mock import Mock, AsyncMock, patch
-from pathlib import Path
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
-from app.monitoring.file_monitor import FileMonitor
+from app.websocket.connection_manager import ConnectionManager
+from app.models.contracts import ConversationData
 from app.websocket.connection_manager import ConnectionManager
 from app.models.contracts import ConversationData
 
