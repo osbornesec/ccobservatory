@@ -208,7 +208,7 @@ public async post<T>(endpoint: string, data?: Record<string, unknown>): Promise<
 		return this.get(`/projects/${id}`);
 	}
 
-	public async createProject(data: any) {
+	public async createProject(data: Partial<import('$lib/types').Project>) {
 		return this.post('/projects', data);
 	}
 
