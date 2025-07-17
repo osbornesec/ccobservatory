@@ -13,9 +13,9 @@
 	}
 
 	onMount(() => {
-		// Theme is initialized automatically by the themeStore
-		// No manual initialization needed
-		
+		// Initialize theme from localStorage or system preference
+		themeStore.init();
+
 		// Detect and apply system accessibility preferences
 		if (browser) {
 			accessibilityStore.detectSystemPreferences();

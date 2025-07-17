@@ -151,11 +151,17 @@ class ApiClient {
 			
 			log(`API Response (${response.status}):`, data);
 			
-			return {
+			const apiResponse: any = {
 				data: data.data || data,
 				success: data.success !== false,
 				message: data.message
 			};
+
+			if (data.pagination) {
+				apiResponse.pagination = data.pagination;
+			}
+
+			return apiResponse;
 
 		} catch (error) {
 			logError('Failed to parse API response:', error);
