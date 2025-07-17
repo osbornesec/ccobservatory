@@ -220,7 +220,7 @@ public async post<T>(endpoint: string, data?: Record<string, unknown>): Promise<
 		return this.get(`/conversations/${id}`);
 	}
 
-	public async search(query: string, filters?: any) {
+	public async search(query: string, filters?: import('$lib/types').SearchFilters) {
 		return this.post('/search', { query, filters });
 	}
 
