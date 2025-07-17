@@ -89,7 +89,7 @@ class ConnectionManager:
         if client_id in self.client_metadata:
             self.client_metadata[client_id]["message_count"] += 1
 
-    async def broadcast(self, message: dict, subscription_filter: Optional[str] = None):
+    async def broadcast(self, message: dict, subscription_filter: Optional[str] = None) -> List[str]:
         """Broadcast a message to connected clients.
         
         Args:
