@@ -10,14 +10,18 @@
 	import ConnectionStatus from '$lib/components/ConnectionStatus.svelte';
 	import { dashboardService } from '$lib/api/dashboard';
 	import { connectionStatus } from '$lib/stores/conversations';
+	import type { Analytics } from '$lib/types';
 
 	let isLoading = true;
 	let error: string | null = null;
-	let analytics = {
+	let analytics: Analytics = {
 		total_conversations: 0,
 		total_messages: 0,
 		total_tool_calls: 0,
-		avg_conversation_length: 0
+		avg_conversation_length: 0,
+		most_used_tools: [],
+		daily_activity: [],
+		project_activity: []
 	};
 
 	onMount(async () => {

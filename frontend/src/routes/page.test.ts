@@ -113,9 +113,10 @@ describe('Main Page Component', () => {
 		// Then: The apiClient.getProjects() method is called and projects data is stored in the projects store
 
 		// Projects store is imported for state management
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// loadData function is defined to handle data fetching
 		expect(componentContent).toContain('async function loadData() {');
@@ -141,7 +142,7 @@ describe('Main Page Component', () => {
 		);
 
 		// Conversations data is stored in the conversations store for reactive updates
-		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('conversationsStore.set(conversationsData.data);');
 
 		// Conversations fetching is part of the loadData function
 		expect(componentContent).toContain('// Load recent conversations');
@@ -533,31 +534,33 @@ describe('Main Page Component', () => {
 		const endPattern = /}\s*finally\s*\{[\s\S]*?\}\s*\}\);/;
 		const match = onMountContent.match(endPattern);
 		expect(match).not.toBeNull();
-		const onMountEnd = onMountStart + match!.index + match![0].length;
-		expect(onMountEnd).toBeGreaterThan(onMountStart);
+		if (match && match.index !== undefined) {
+			const onMountEnd = onMountStart + match.index + match[0].length;
+			expect(onMountEnd).toBeGreaterThan(onMountStart);
 
-		// conversation_update handler is registered inside onMount
-		const convoIdx = componentContent.indexOf("wsClient.on('conversation_update'", onMountStart);
-		expect(convoIdx).toBeGreaterThan(-1);
-		expect(convoIdx).toBeLessThan(onMountEnd);
+			// conversation_update handler is registered inside onMount
+			const convoIdx = componentContent.indexOf("wsClient.on('conversation_update'", onMountStart);
+			expect(convoIdx).toBeGreaterThan(-1);
+			expect(convoIdx).toBeLessThan(onMountEnd);
 
-		// project_update handler is registered inside onMount
-		const projIdx = componentContent.indexOf("wsClient.on('project_update'", onMountStart);
-		expect(projIdx).toBeGreaterThan(-1);
-		expect(projIdx).toBeLessThan(onMountEnd);
+			// project_update handler is registered inside onMount
+			const projIdx = componentContent.indexOf("wsClient.on('project_update'", onMountStart);
+			expect(projIdx).toBeGreaterThan(-1);
+			expect(projIdx).toBeLessThan(onMountEnd);
 
-		// Both handlers reside inside the main try-catch block for error safety
-		const tryIdx = componentContent.indexOf('try {', onMountStart);
-		const catchIdx = componentContent.indexOf('} catch', onMountStart);
-		expect(tryIdx).toBeGreaterThan(-1);
-		expect(catchIdx).toBeGreaterThan(convoIdx);
-		expect(catchIdx).toBeGreaterThan(projIdx);
+			// Both handlers reside inside the main try-catch block for error safety
+			const tryIdx = componentContent.indexOf('try {', onMountStart);
+			const catchIdx = componentContent.indexOf('} catch', onMountStart);
+			expect(tryIdx).toBeGreaterThan(-1);
+			expect(catchIdx).toBeGreaterThan(convoIdx);
+			expect(catchIdx).toBeGreaterThan(projIdx);
+		}
 	});
 
 	it('handles conversation_update events for real-time conversation changes', () => {
 		// Given: A main page component that registers WebSocket listeners
 		// When: The WebSocket receives a "conversation_update" event with a payload
-		// Then: conversations.updateConversation(data.id, data) is called to update the store
+		// Then: conversationsStore.updateConversation(data.id, data) is called to update the store
 
 		// Handler is registered with an arrow function that accepts `data`
 		const registrationPattern =
@@ -565,7 +568,7 @@ describe('Main Page Component', () => {
 		expect(componentContent).toMatch(registrationPattern);
 
 		// Handler body calls the store action with the correct parameter order
-		const updateCallPattern = /conversations\.updateConversation\(\s*data\.id\s*,\s*data\s*\)/;
+		const updateCallPattern = /conversationsStore\.updateConversation\(\s*data\.id\s*,\s*data\s*\)/;
 		expect(componentContent).toMatch(updateCallPattern);
 	});
 
@@ -590,7 +593,7 @@ describe('Main Page Component', () => {
 
 		// conversation_update handler calls updateConversation helper
 		expect(componentContent).toContain("wsClient.on('conversation_update'");
-		expect(componentContent).toMatch(/conversations\.updateConversation\([\s\S]*data\.id/);
+		expect(componentContent).toMatch(/conversationsStore\.updateConversation\([\s\S]*data\.id/);
 
 		// project_update handler calls projects.update mapper
 		expect(componentContent).toContain("wsClient.on('project_update'");
@@ -612,9 +615,10 @@ describe('Main Page Component', () => {
 		expect(componentContent).toMatch(/onMount\s*\([\s\S]*wsClient\.on\('conversation_update'/);
 
 		// connectionStatus store is imported and its state is shown in the badge
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 		expect(componentContent).toMatch(
 			/class="badge {\$connectionStatus === 'connected'[\s\S]*\? 'badge-success'[\s\S]*: 'badge-warning'}"/
 		);
@@ -636,7 +640,9 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">');
 
 		// View Conversations button has proper href for navigation
-		expect(componentContent).toContain('<a href="/conversations" class="btn btn-primary">View Conversations</a>');
+		expect(componentContent).toContain(
+			'<a href="/conversations" class="btn btn-primary">View Conversations</a>'
+		);
 
 		// Card actions provide proper semantic structure for navigation
 		expect(componentContent).toContain('<div class="card-actions justify-end mt-4">');
@@ -654,7 +660,9 @@ describe('Main Page Component', () => {
 		// Then: Settings button has proper href and secondary button styling
 
 		// Connection Status section contains settings navigation
-		expect(componentContent).toContain('<h2 class="card-title text-base-content">Connection Status</h2>');
+		expect(componentContent).toContain(
+			'<h2 class="card-title text-base-content">Connection Status</h2>'
+		);
 
 		// Settings button has proper href for navigation
 		expect(componentContent).toContain('<a href="/settings" class="btn btn-outline">Settings</a>');
@@ -703,7 +711,9 @@ describe('Main Page Component', () => {
 		// Then: Backend API shows "Connected" status with success badge styling
 
 		// Connection Status section contains backend API status
-		expect(componentContent).toContain('<h2 class="card-title text-base-content">Connection Status</h2>');
+		expect(componentContent).toContain(
+			'<h2 class="card-title text-base-content">Connection Status</h2>'
+		);
 
 		// Backend API connection status is displayed
 		expect(componentContent).toContain('<span>Backend API</span>');
@@ -716,7 +726,8 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<div class="space-y-3">');
 
 		// Backend API status appears in the Connection Status card
-		const backendStatusPattern = /<span>Backend API<\/span>[\s\S]*?<div class="badge badge-success">Connected<\/div>/;
+		const backendStatusPattern =
+			/<span>Backend API<\/span>[\s\S]*?<div class="badge badge-success">Connected<\/div>/;
 		expect(componentContent).toMatch(backendStatusPattern);
 	});
 
@@ -730,7 +741,7 @@ describe('Main Page Component', () => {
 
 		// WebSocket badge uses reactive class binding based on connectionStatus
 		expect(componentContent).toContain(
-			'class="badge {$connectionStatus === \'connected\'\n\t\t\t\t\t\t\t\t\t\t\t\t? \'badge-success\'\n\t\t\t\t\t\t\t\t\t\t\t\t: \'badge-warning\'}"'
+			"class=\"badge {$connectionStatus === 'connected'\n\t\t\t\t\t\t\t\t\t\t\t\t? 'badge-success'\n\t\t\t\t\t\t\t\t\t\t\t\t: 'badge-warning'}\""
 		);
 
 		// WebSocket status text changes reactively with connection state
@@ -739,9 +750,10 @@ describe('Main Page Component', () => {
 		);
 
 		// connectionStatus store is imported for reactive updates
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// WebSocket status appears in the Connection Status card
 		const wsStatusPattern = /<span>WebSocket<\/span>[\s\S]*?class="badge.*?\$connectionStatus/;
@@ -761,7 +773,8 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<div class="flex items-center justify-between">');
 
 		// File monitor status appears in the Connection Status card
-		const fileMonitorPattern = /<span>File Monitor<\/span>[\s\S]*?<div class="badge badge-info">Active<\/div>/;
+		const fileMonitorPattern =
+			/<span>File Monitor<\/span>[\s\S]*?<div class="badge badge-info">Active<\/div>/;
 		expect(componentContent).toMatch(fileMonitorPattern);
 
 		// All three connection statuses are present in the same card
@@ -780,18 +793,19 @@ describe('Main Page Component', () => {
 		// Then: All necessary stores are imported and used for reactive updates
 
 		// Svelte stores are imported for reactive state management
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// connectionStatus store is used reactively in the template
 		expect(componentContent).toContain('$connectionStatus');
 
 		// Store references are used for reactive updates
-		expect(componentContent).toContain('conversations.updateConversation');
+		expect(componentContent).toContain('conversationsStore.updateConversation');
 		expect(componentContent).toContain('projects.update');
 		expect(componentContent).toContain('projects.set');
-		expect(componentContent).toContain('conversations.set');
+		expect(componentContent).toContain('conversationsStore.set');
 
 		// WebSocket handlers update stores for reactive UI updates
 		expect(componentContent).toContain("wsClient.on('conversation_update'");
@@ -804,17 +818,15 @@ describe('Main Page Component', () => {
 		// Then: Stores are updated to trigger reactive UI updates
 
 		// conversation_update handler updates conversations store
-		expect(componentContent).toContain(
-			"wsClient.on('conversation_update', data => {"
-		);
-		expect(componentContent).toContain('conversations.updateConversation(data.id, data);');
+		expect(componentContent).toContain("wsClient.on('conversation_update', data => {");
+		expect(componentContent).toContain('conversationsStore.updateConversation(data.id, data);');
 
 		// project_update handler updates projects store with mapping
-		expect(componentContent).toContain(
-			"wsClient.on('project_update', data => {"
-		);
+		expect(componentContent).toContain("wsClient.on('project_update', data => {");
 		expect(componentContent).toContain('projects.update(currentProjects =>');
-		expect(componentContent).toContain('currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))');
+		expect(componentContent).toContain(
+			'currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))'
+		);
 
 		// Store updates trigger reactive UI changes
 		expect(componentContent).toContain('});');
@@ -858,7 +870,9 @@ describe('Main Page Component', () => {
 
 		// Error state is used in conditional rendering
 		expect(componentContent).toContain('{:else if error}');
-		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+		expect(componentContent).toContain(
+			'<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />'
+		);
 
 		// Error state is set when exceptions occur
 		expect(componentContent).toContain('} catch (err) {');
@@ -893,12 +907,18 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<Sidebar />');
 
 		// Loading component is imported and conditionally rendered
-		expect(componentContent).toContain("import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';");
+		expect(componentContent).toContain(
+			"import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';"
+		);
 		expect(componentContent).toContain('<LoadingSpinner size="lg" text="Loading dashboard..." />');
 
 		// Error component is imported and conditionally rendered
-		expect(componentContent).toContain("import ErrorMessage from '$lib/components/ErrorMessage.svelte';");
-		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+		expect(componentContent).toContain(
+			"import ErrorMessage from '$lib/components/ErrorMessage.svelte';"
+		);
+		expect(componentContent).toContain(
+			'<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />'
+		);
 
 		// Layout structure integrates components in proper semantic hierarchy
 		expect(componentContent).toContain('<div class="min-h-screen bg-base-100">');
@@ -914,12 +934,14 @@ describe('Main Page Component', () => {
 		// API client is used to fetch data
 		expect(componentContent).toContain("import { apiClient } from '$lib/api/client';");
 		expect(componentContent).toContain('const projectsData = await apiClient.getProjects();');
-		expect(componentContent).toContain('const conversationsData = await apiClient.getConversations(1, 10);');
+		expect(componentContent).toContain(
+			'const conversationsData = await apiClient.getConversations(1, 10);'
+		);
 		expect(componentContent).toContain('const analyticsData = await apiClient.getAnalytics();');
 
 		// Data is stored in Svelte stores for reactive updates
 		expect(componentContent).toContain('projects.set(projectsData);');
-		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('conversationsStore.set(conversationsData.data);');
 		expect(componentContent).toContain('analytics = analyticsData;');
 
 		// Props are passed to child components with correct data types
@@ -1000,7 +1022,9 @@ describe('Main Page Component', () => {
 
 		// Component isolation prevents state leakage between UI sections
 		expect(componentContent).toContain('<div class="flex items-center justify-center h-full">');
-		expect(componentContent).toContain('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">');
+		expect(componentContent).toContain(
+			'<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">'
+		);
 		expect(componentContent).toContain('<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">');
 	});
 
@@ -1061,7 +1085,9 @@ describe('Main Page Component', () => {
 
 		// Error UI is isolated and provides user-friendly feedback
 		expect(componentContent).toContain('{:else if error}');
-		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+		expect(componentContent).toContain(
+			'<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />'
+		);
 
 		// Error boundaries prevent complete UI failure
 		expect(componentContent).toContain('} finally {');
@@ -1083,14 +1109,15 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('} catch (err) {');
 
 		// connectionStatus store tracks WebSocket health
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// UI shows connection status and degrades gracefully
 		expect(componentContent).toContain('$connectionStatus');
 		expect(componentContent).toContain(
-			'class="badge {$connectionStatus === \'connected\'\n\t\t\t\t\t\t\t\t\t\t\t\t? \'badge-success\'\n\t\t\t\t\t\t\t\t\t\t\t\t: \'badge-warning\'}"'
+			"class=\"badge {$connectionStatus === 'connected'\n\t\t\t\t\t\t\t\t\t\t\t\t? 'badge-success'\n\t\t\t\t\t\t\t\t\t\t\t\t: 'badge-warning'}\""
 		);
 		expect(componentContent).toContain(
 			"{$connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}"
@@ -1135,7 +1162,7 @@ describe('Main Page Component', () => {
 
 		// Store updates are atomic and prevent partial state updates
 		expect(componentContent).toContain('projects.set(projectsData);');
-		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('conversationsStore.set(conversationsData.data);');
 		expect(componentContent).toContain('analytics = analyticsData;');
 	});
 
@@ -1177,7 +1204,9 @@ describe('Main Page Component', () => {
 		// Then: Links have descriptive text and proper accessibility attributes
 
 		// Navigation links use descriptive text (WCAG 2.4.4)
-		expect(componentContent).toContain('<a href="/conversations" class="btn btn-primary">View Conversations</a>');
+		expect(componentContent).toContain(
+			'<a href="/conversations" class="btn btn-primary">View Conversations</a>'
+		);
 		expect(componentContent).toContain('<a href="/settings" class="btn btn-outline">Settings</a>');
 
 		// Link text is meaningful and describes the destination
@@ -1218,7 +1247,9 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('{:else}');
 
 		// Loading component is imported properly
-		expect(componentContent).toContain("import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';");
+		expect(componentContent).toContain(
+			"import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';"
+		);
 	});
 
 	it('should provide accessible error messaging with proper user guidance', () => {
@@ -1227,7 +1258,9 @@ describe('Main Page Component', () => {
 		// Then: Error messages are accessible and provide actionable guidance
 
 		// Error message component has descriptive title and message
-		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+		expect(componentContent).toContain(
+			'<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />'
+		);
 
 		// Error message provides clear context about the failure
 		expect(componentContent).toContain('title="Failed to Load Dashboard"');
@@ -1240,7 +1273,9 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<div class="p-8">');
 
 		// Error component is imported properly
-		expect(componentContent).toContain("import ErrorMessage from '$lib/components/ErrorMessage.svelte';");
+		expect(componentContent).toContain(
+			"import ErrorMessage from '$lib/components/ErrorMessage.svelte';"
+		);
 
 		// Error variable is properly typed for accessibility
 		expect(componentContent).toContain('let error: string | null = null;');
@@ -1261,17 +1296,22 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain("import { onMount } from 'svelte';");
 		expect(componentContent).toContain("import Header from '$lib/components/Header.svelte';");
 		expect(componentContent).toContain("import Sidebar from '$lib/components/Sidebar.svelte';");
-		expect(componentContent).toContain("import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';");
-		expect(componentContent).toContain("import ErrorMessage from '$lib/components/ErrorMessage.svelte';");
+		expect(componentContent).toContain(
+			"import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';"
+		);
+		expect(componentContent).toContain(
+			"import ErrorMessage from '$lib/components/ErrorMessage.svelte';"
+		);
 
 		// API clients are efficiently imported
 		expect(componentContent).toContain("import { apiClient } from '$lib/api/client';");
 		expect(componentContent).toContain("import { wsClient } from '$lib/api/websocket';");
 
 		// Store imports are optimized for tree-shaking
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// Icon imports use selective importing for bundle size optimization
 		expect(componentContent).toContain(
@@ -1282,7 +1322,9 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('<Header />');
 		expect(componentContent).toContain('<Sidebar />');
 		expect(componentContent).toContain('<LoadingSpinner size="lg" text="Loading dashboard..." />');
-		expect(componentContent).toContain('<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />');
+		expect(componentContent).toContain(
+			'<ErrorMessage title="Failed to Load Dashboard" message={error} retryAction={retryLoad} />'
+		);
 	});
 
 	it('should optimize data loading patterns to prevent performance bottlenecks', () => {
@@ -1301,12 +1343,14 @@ describe('Main Page Component', () => {
 
 		// Multiple API calls are structured efficiently
 		expect(componentContent).toContain('const projectsData = await apiClient.getProjects();');
-		expect(componentContent).toContain('const conversationsData = await apiClient.getConversations(1, 10);');
+		expect(componentContent).toContain(
+			'const conversationsData = await apiClient.getConversations(1, 10);'
+		);
 		expect(componentContent).toContain('const analyticsData = await apiClient.getAnalytics();');
 
 		// Store updates are batched for performance
 		expect(componentContent).toContain('projects.set(projectsData);');
-		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('conversationsStore.set(conversationsData.data);');
 		expect(componentContent).toContain('analytics = analyticsData;');
 
 		// WebSocket setup is deferred until after data loading
@@ -1342,7 +1386,7 @@ describe('Main Page Component', () => {
 		// Store subscriptions use efficient reactive patterns
 		expect(componentContent).toContain('$connectionStatus');
 		expect(componentContent).toContain(
-			'{$connectionStatus === \'connected\' ? \'Connected\' : \'Disconnected\'}'
+			"{$connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}"
 		);
 
 		// Conditional rendering minimizes DOM updates
@@ -1352,9 +1396,10 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('{/if}');
 
 		// WebSocket handlers use efficient update patterns
-		expect(componentContent).toContain('conversations.updateConversation(data.id, data);');
+		expect(componentContent).toContain('conversationsStore.updateConversation(data.id, data);');
 		expect(componentContent).toContain('projects.update(currentProjects =>');
-		expect(componentContent).toContain('currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))');
+		expect(componentContent).toContain(
+			'currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))'
+		);
 	});
-
 });

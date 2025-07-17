@@ -20,9 +20,9 @@ vi.mock('$lib/stores/theme', () => ({
 
 /**
  * Canon TDD Test List for +layout.svelte
- * 
+ *
  * Following Canon TDD methodology: Test List → Write One Test → Make It Pass → Refactor
- * 
+ *
  * Test Scenarios (behaviors to test):
  * 1. ✓ Component renders with proper container styling
  * 2. ✓ Component renders slot content correctly
@@ -36,7 +36,7 @@ vi.mock('$lib/stores/theme', () => ({
  * 10. ✓ Component handles theme store errors gracefully
  * 11. ✓ Component maintains proper accessibility structure
  * 12. ✓ Component preserves existing document attributes when setting theme
- * 
+ *
  * Current Test: #1 - Component renders with proper container styling
  * Next Test: #2 - Component renders slot content correctly
  */
@@ -48,18 +48,18 @@ describe('+layout.svelte', () => {
 	beforeEach(() => {
 		// Reset theme store to initial state
 		mockThemeStore.set('light');
-		
+
 		// Create mock document element
 		mockDocumentElement = document.createElement('html');
 		originalDocument = global.document;
-		
+
 		// Mock document.documentElement
 		Object.defineProperty(global.document, 'documentElement', {
 			value: mockDocumentElement,
 			writable: true,
 			configurable: true
 		});
-		
+
 		// Reset localStorage mock
 		vi.clearAllMocks();
 		(window.localStorage.getItem as any).mockReturnValue(null);
@@ -74,9 +74,9 @@ describe('+layout.svelte', () => {
 
 	/**
 	 * Test #1: Component renders with proper container styling
-	 * 
+	 *
 	 * Canon TDD: Write One Test → Make It Pass → Refactor
-	 * 
+	 *
 	 * This test verifies that the layout component renders a container
 	 * with the correct CSS classes for full-screen layout and theming.
 	 */
@@ -86,7 +86,7 @@ describe('+layout.svelte', () => {
 
 		// Assert
 		const container = screen.getByTestId('layout-container');
-		
+
 		expect(container).toBeTruthy();
 		expect(container).toHaveClass('min-h-screen', 'bg-base-100');
 	});

@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 /**
  * Canon TDD Test List for +layout.svelte
- * 
+ *
  * Following Canon TDD methodology: Test List → Write One Test → Make It Pass → Refactor
- * 
+ *
  * Test Scenarios (behaviors to test):
  * 1. ✓ Component renders with proper container styling
  * 2. ✓ Component renders slot content correctly
@@ -18,7 +18,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
  * 10. ✓ Component handles theme store errors gracefully
  * 11. ✓ Component maintains proper accessibility structure
  * 12. ✓ Component preserves existing document attributes when setting theme
- * 
+ *
  * Current Test: #1 - Component renders with proper container styling
  * Next Test: #2 - Component renders slot content correctly
  */
@@ -26,9 +26,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 describe('+layout.svelte', () => {
 	/**
 	 * Test #1: Component renders with proper container styling
-	 * 
+	 *
 	 * Canon TDD: Write One Test → Make It Pass → Refactor
-	 * 
+	 *
 	 * This test verifies that the layout component renders a container
 	 * with the correct CSS classes for full-screen layout and theming.
 	 */

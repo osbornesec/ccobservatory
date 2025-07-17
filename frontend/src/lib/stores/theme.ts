@@ -2,11 +2,16 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 function createThemeStore() {
-	const { subscribe, set } = writable<string>('light');
+	const { subscribe, set, update } = writable<string>('light');
 
 	return {
 		subscribe,
-		set,
+		set: (value: string) => {
+			if (browser) {
+				localStorage.setItem('theme', value);
+			}
+			set(value);
+		},
 		init: () => {
 			if (browser) {
 				const stored = localStorage.getItem('theme');
@@ -18,6 +23,15 @@ function createThemeStore() {
 					set(prefersDark ? 'dark' : 'light');
 				}
 			}
+		},
+		toggle: () => {
+			update(current => {
+				const newTheme = current === 'light' ? 'dark' : 'light';
+				if (browser) {
+					localStorage.setItem('theme', newTheme);
+				}
+				return newTheme;
+			});
 		}
 	};
 }
