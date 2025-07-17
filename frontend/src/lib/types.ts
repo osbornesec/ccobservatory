@@ -94,10 +94,21 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
 }
 
 // WebSocket message types
-export interface WebSocketMessage {
-	type: 'conversation_update' | 'message_added' | 'tool_call_update' | 'project_update';
-	data: any;
-	timestamp: string;
+export interface WebSocketMessage<T = any> {
+	type: string;
+	data: T;
+	timestamp: number;
+}
+
+export interface WebSocketEventHandler<T = any> {
+	(data: T): void;
+}
+
+export interface WebSocketConfig {
+	url: string;
+	reconnectInterval: number;
+	maxReconnectAttempts: number;
+	heartbeatInterval?: number;
 }
 
 export interface ConversationUpdateMessage {

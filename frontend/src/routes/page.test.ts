@@ -113,9 +113,10 @@ describe('Main Page Component', () => {
 		// Then: The apiClient.getProjects() method is called and projects data is stored in the projects store
 
 		// Projects store is imported for state management
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// loadData function is defined to handle data fetching
 		expect(componentContent).toContain('async function loadData() {');
@@ -141,7 +142,7 @@ describe('Main Page Component', () => {
 		);
 
 		// Conversations data is stored in the conversations store for reactive updates
-		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('conversationsStore.set(conversationsData.data);');
 
 		// Conversations fetching is part of the loadData function
 		expect(componentContent).toContain('// Load recent conversations');
@@ -533,31 +534,33 @@ describe('Main Page Component', () => {
 		const endPattern = /}\s*finally\s*\{[\s\S]*?\}\s*\}\);/;
 		const match = onMountContent.match(endPattern);
 		expect(match).not.toBeNull();
-		const onMountEnd = onMountStart + match!.index + match![0].length;
-		expect(onMountEnd).toBeGreaterThan(onMountStart);
+		if (match && match.index !== undefined) {
+			const onMountEnd = onMountStart + match.index + match[0].length;
+			expect(onMountEnd).toBeGreaterThan(onMountStart);
 
-		// conversation_update handler is registered inside onMount
-		const convoIdx = componentContent.indexOf("wsClient.on('conversation_update'", onMountStart);
-		expect(convoIdx).toBeGreaterThan(-1);
-		expect(convoIdx).toBeLessThan(onMountEnd);
+			// conversation_update handler is registered inside onMount
+			const convoIdx = componentContent.indexOf("wsClient.on('conversation_update'", onMountStart);
+			expect(convoIdx).toBeGreaterThan(-1);
+			expect(convoIdx).toBeLessThan(onMountEnd);
 
-		// project_update handler is registered inside onMount
-		const projIdx = componentContent.indexOf("wsClient.on('project_update'", onMountStart);
-		expect(projIdx).toBeGreaterThan(-1);
-		expect(projIdx).toBeLessThan(onMountEnd);
+			// project_update handler is registered inside onMount
+			const projIdx = componentContent.indexOf("wsClient.on('project_update'", onMountStart);
+			expect(projIdx).toBeGreaterThan(-1);
+			expect(projIdx).toBeLessThan(onMountEnd);
 
-		// Both handlers reside inside the main try-catch block for error safety
-		const tryIdx = componentContent.indexOf('try {', onMountStart);
-		const catchIdx = componentContent.indexOf('} catch', onMountStart);
-		expect(tryIdx).toBeGreaterThan(-1);
-		expect(catchIdx).toBeGreaterThan(convoIdx);
-		expect(catchIdx).toBeGreaterThan(projIdx);
+			// Both handlers reside inside the main try-catch block for error safety
+			const tryIdx = componentContent.indexOf('try {', onMountStart);
+			const catchIdx = componentContent.indexOf('} catch', onMountStart);
+			expect(tryIdx).toBeGreaterThan(-1);
+			expect(catchIdx).toBeGreaterThan(convoIdx);
+			expect(catchIdx).toBeGreaterThan(projIdx);
+		}
 	});
 
 	it('handles conversation_update events for real-time conversation changes', () => {
 		// Given: A main page component that registers WebSocket listeners
 		// When: The WebSocket receives a "conversation_update" event with a payload
-		// Then: conversations.updateConversation(data.id, data) is called to update the store
+		// Then: conversationsStore.updateConversation(data.id, data) is called to update the store
 
 		// Handler is registered with an arrow function that accepts `data`
 		const registrationPattern =
@@ -565,7 +568,7 @@ describe('Main Page Component', () => {
 		expect(componentContent).toMatch(registrationPattern);
 
 		// Handler body calls the store action with the correct parameter order
-		const updateCallPattern = /conversations\.updateConversation\(\s*data\.id\s*,\s*data\s*\)/;
+		const updateCallPattern = /conversationsStore\.updateConversation\(\s*data\.id\s*,\s*data\s*\)/;
 		expect(componentContent).toMatch(updateCallPattern);
 	});
 
@@ -590,7 +593,7 @@ describe('Main Page Component', () => {
 
 		// conversation_update handler calls updateConversation helper
 		expect(componentContent).toContain("wsClient.on('conversation_update'");
-		expect(componentContent).toMatch(/conversations\.updateConversation\([\s\S]*data\.id/);
+		expect(componentContent).toMatch(/conversationsStore\.updateConversation\([\s\S]*data\.id/);
 
 		// project_update handler calls projects.update mapper
 		expect(componentContent).toContain("wsClient.on('project_update'");
@@ -612,9 +615,10 @@ describe('Main Page Component', () => {
 		expect(componentContent).toMatch(/onMount\s*\([\s\S]*wsClient\.on\('conversation_update'/);
 
 		// connectionStatus store is imported and its state is shown in the badge
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 		expect(componentContent).toMatch(
 			/class="badge {\$connectionStatus === 'connected'[\s\S]*\? 'badge-success'[\s\S]*: 'badge-warning'}"/
 		);
@@ -746,9 +750,10 @@ describe('Main Page Component', () => {
 		);
 
 		// connectionStatus store is imported for reactive updates
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// WebSocket status appears in the Connection Status card
 		const wsStatusPattern = /<span>WebSocket<\/span>[\s\S]*?class="badge.*?\$connectionStatus/;
@@ -788,18 +793,19 @@ describe('Main Page Component', () => {
 		// Then: All necessary stores are imported and used for reactive updates
 
 		// Svelte stores are imported for reactive state management
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// connectionStatus store is used reactively in the template
 		expect(componentContent).toContain('$connectionStatus');
 
 		// Store references are used for reactive updates
-		expect(componentContent).toContain('conversations.updateConversation');
+		expect(componentContent).toContain('conversationsStore.updateConversation');
 		expect(componentContent).toContain('projects.update');
 		expect(componentContent).toContain('projects.set');
-		expect(componentContent).toContain('conversations.set');
+		expect(componentContent).toContain('conversationsStore.set');
 
 		// WebSocket handlers update stores for reactive UI updates
 		expect(componentContent).toContain("wsClient.on('conversation_update'");
@@ -813,7 +819,7 @@ describe('Main Page Component', () => {
 
 		// conversation_update handler updates conversations store
 		expect(componentContent).toContain("wsClient.on('conversation_update', data => {");
-		expect(componentContent).toContain('conversations.updateConversation(data.id, data);');
+		expect(componentContent).toContain('conversationsStore.updateConversation(data.id, data);');
 
 		// project_update handler updates projects store with mapping
 		expect(componentContent).toContain("wsClient.on('project_update', data => {");
@@ -935,7 +941,7 @@ describe('Main Page Component', () => {
 
 		// Data is stored in Svelte stores for reactive updates
 		expect(componentContent).toContain('projects.set(projectsData);');
-		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('conversationsStore.set(conversationsData.data);');
 		expect(componentContent).toContain('analytics = analyticsData;');
 
 		// Props are passed to child components with correct data types
@@ -1103,9 +1109,10 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('} catch (err) {');
 
 		// connectionStatus store tracks WebSocket health
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// UI shows connection status and degrades gracefully
 		expect(componentContent).toContain('$connectionStatus');
@@ -1155,7 +1162,7 @@ describe('Main Page Component', () => {
 
 		// Store updates are atomic and prevent partial state updates
 		expect(componentContent).toContain('projects.set(projectsData);');
-		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('conversationsStore.set(conversationsData.data);');
 		expect(componentContent).toContain('analytics = analyticsData;');
 	});
 
@@ -1301,9 +1308,10 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain("import { wsClient } from '$lib/api/websocket';");
 
 		// Store imports are optimized for tree-shaking
-		expect(componentContent).toContain(
-			"import { projects, conversations, connectionStatus } from '$lib/stores/conversations';"
-		);
+		expect(componentContent).toContain("projects,");
+		expect(componentContent).toContain("conversationsStore,");
+		expect(componentContent).toContain("connectionStatus");
+		expect(componentContent).toContain("from '$lib/stores/conversations';");
 
 		// Icon imports use selective importing for bundle size optimization
 		expect(componentContent).toContain(
@@ -1342,7 +1350,7 @@ describe('Main Page Component', () => {
 
 		// Store updates are batched for performance
 		expect(componentContent).toContain('projects.set(projectsData);');
-		expect(componentContent).toContain('conversations.set(conversationsData.data);');
+		expect(componentContent).toContain('conversationsStore.set(conversationsData.data);');
 		expect(componentContent).toContain('analytics = analyticsData;');
 
 		// WebSocket setup is deferred until after data loading
@@ -1388,7 +1396,7 @@ describe('Main Page Component', () => {
 		expect(componentContent).toContain('{/if}');
 
 		// WebSocket handlers use efficient update patterns
-		expect(componentContent).toContain('conversations.updateConversation(data.id, data);');
+		expect(componentContent).toContain('conversationsStore.updateConversation(data.id, data);');
 		expect(componentContent).toContain('projects.update(currentProjects =>');
 		expect(componentContent).toContain(
 			'currentProjects.map(p => (p.id === data.id ? { ...p, ...data } : p))'

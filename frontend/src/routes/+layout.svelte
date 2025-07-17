@@ -10,8 +10,8 @@
 	}
 
 	onMount(() => {
-		// Initialize theme from localStorage or system preference
-		themeStore.init();
+		// Theme is initialized automatically by the themeStore
+		// No manual initialization needed
 	});
 </script>
 

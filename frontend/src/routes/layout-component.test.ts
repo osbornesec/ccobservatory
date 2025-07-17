@@ -15,10 +15,15 @@ vi.mock('$app/environment', () => ({
 
 // Mock theme store
 const mockThemeStore = writable('light');
-mockThemeStore.init = vi.fn();
+const mockThemeStoreWithMethods = {
+  ...mockThemeStore,
+  set: vi.fn(),
+  toggle: vi.fn(),
+  reset: vi.fn()
+};
 
 vi.mock('$lib/stores/theme', () => ({
-	themeStore: mockThemeStore
+	themeStore: mockThemeStoreWithMethods
 }));
 
 /**

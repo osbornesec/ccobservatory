@@ -12,7 +12,7 @@
 	import { wsClient } from '$lib/api/websocket';
 	import {
 		projects,
-		conversationsStore as conversations,
+		conversationsStore,
 		connectionStatus
 	} from '$lib/stores/conversations';
 	import type { ConversationUpdateMessage, ProjectUpdateMessage } from '$lib/types';
@@ -33,7 +33,7 @@
 
 			// Set up WebSocket message handlers with proper typing
 			wsClient.on<ConversationUpdateMessage>('conversation_update', data => {
-				conversations.updateConversation(data.id, data);
+				conversationsStore.updateConversation(data.id, data);
 			});
 
 			wsClient.on<ProjectUpdateMessage>('project_update', data => {
