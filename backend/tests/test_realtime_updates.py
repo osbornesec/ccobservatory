@@ -10,18 +10,16 @@ import pytest
 import asyncio
 import json
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 from datetime import datetime, timezone
-from typing import Dict, List, Any
 from uuid import uuid4
 
 from app.websocket.connection_manager import ConnectionManager
 from app.websocket.websocket_handler import (
     broadcast_conversation_update,
-    broadcast_file_monitoring_update,
 )
 from app.monitoring.database_writer import DatabaseWriter
-from app.models.contracts import ConversationData, ParsedMessage, PerformanceMetrics
+from app.models.contracts import ConversationData, ParsedMessage
 
 
 class TestRealtimeUpdates:
