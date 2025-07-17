@@ -102,18 +102,27 @@ class ConnectionManager:
         # Track failed clients
         failed_clients = []
         
+        # Validate message structure
+        if not isinstance(message, dict):
+            logger.error("Message must be a dictionary")
+            return []
+
+        if "type" not in message:
+            logger.error("Message missing required 'type' field")
+            return []
+
         # Ensure consistent message format with timestamp
         broadcast_message = {
             "type": message.get("type", "unknown"),
             "data": message.get("data", {}),
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
         try:
             message_json = json.dumps(broadcast_message)
         except (TypeError, ValueError) as e:
-            logger.error(f"JSON serialization error: {e}")
-            return []  # Return empty list for failed serialization
+            logger.error(f"JSON serialization error for message type '{message.get('type', 'unknown')}': {e}")
+            return []
         
         # If no filter, send to all clients (existing behavior)
         if subscription_filter is None:
