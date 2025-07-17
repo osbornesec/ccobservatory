@@ -3,7 +3,7 @@ import { onDestroy } from 'svelte';
 import { writable, type Writable } from 'svelte/store';
 import { wsClient } from './websocket';
 import { apiClient } from './client';
-import { conversations, projects, connectionStatus } from '$lib/stores/conversations';
+import { conversationsStore as conversations, projects, connectionStatus } from '$lib/stores/conversations';
 import { config, log, logError, logWarn } from '$lib/config';
 import type { 
 	Analytics, 
