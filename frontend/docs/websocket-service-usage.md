@@ -335,7 +335,7 @@ describe('WebSocketClient', () => {
 
 ### Integration Testing
 
-See `/home/michael/dev/ccobservatory/frontend/src/tests/integration/websocket-resilience.test.ts` for comprehensive integration test examples covering:
+See `frontend/src/tests/integration/websocket-resilience.test.ts` for comprehensive integration test examples covering:
 
 - Connection resilience and reconnection
 - Message handling and error recovery
