@@ -8,6 +8,10 @@ import asyncio
 import asyncpg
 import os
 from typing import AsyncGenerator
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 @pytest.fixture(scope="session")

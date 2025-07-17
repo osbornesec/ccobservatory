@@ -151,6 +151,10 @@ class DatabaseWriter:
             exclude_none=True,
             by_alias=True,
         )
+        
+        # Ensure UUIDs are stringified for JSON payload
+        if "project_id" in conversation_payload:
+            conversation_payload["project_id"] = str(conversation_payload["project_id"])
 
         for attempt in range(MAX_RETRIES):
             try:
@@ -239,18 +243,20 @@ class DatabaseWriter:
         messages_payload = []
         for msg in messages:
             msg.conversation_id = conversation_id  # Set correct foreign key
-            payload = msg.model_dump(exclude={"id"}, exclude_none=True, by_alias=True)
+            payload = msg.model_dump(exclude={"id", "message_id"}, exclude_none=True, by_alias=True)
             # Ensure UUIDs are stringified for JSON payload
             payload["conversation_id"] = str(payload["conversation_id"])
+            # Ensure datetime objects are stringified for JSON payload
+            if "timestamp" in payload:
+                payload["timestamp"] = payload["timestamp"].isoformat()
             messages_payload.append(payload)
 
         for attempt in range(MAX_RETRIES):
             try:
-                # Use upsert with on_conflict to handle duplicates gracefully
-                # This requires a unique constraint on (conversation_id, message_id)
+                # Use regular insert for now (messages have UUID primary keys)
                 response = (
                     self._client.table(MESSAGES_TABLE)
-                    .upsert(messages_payload, on_conflict="conversation_id, message_id")
+                    .insert(messages_payload)
                     .execute()
                 )
 

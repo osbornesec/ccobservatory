@@ -12,7 +12,7 @@ from app.websocket.connection_manager import ConnectionManager
 from app.database.supabase_client import get_supabase_service_client
 import logging
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Union
 
 logger = logging.getLogger(__name__)
 
@@ -85,14 +85,14 @@ async def handle_websocket_message(
 
 
 async def broadcast_conversation_update(
-    conversation_data: Dict[str, Any],
+    conversation_data,
     update_type: str = "conversation_update"
 ):
     """
     Broadcast conversation updates to connected clients.
     
     Args:
-        conversation_data: Conversation data to broadcast
+        conversation_data: Conversation data to broadcast (ConversationData model or dict)
         update_type: Type of update (new_conversation, message_update, etc.)
         
     Behavior defined by tests:
@@ -102,26 +102,39 @@ async def broadcast_conversation_update(
     - Include conversation metadata in updates
     - Filter recipients based on project/conversation relevance
     """
+    # Handle both ConversationData model and dict inputs
+    if hasattr(conversation_data, 'model_dump'):
+        # Pydantic model - serialize to dict
+        data_dict = conversation_data.model_dump(mode='json')
+        project_id = conversation_data.project_id
+    else:
+        # Already a dict
+        data_dict = conversation_data
+        project_id = conversation_data.get('project_id')
+    
     # Format message with type and data fields
     message = {
         "type": update_type,
-        "data": conversation_data
+        "data": data_dict
     }
     
+    # Use project-specific subscription filter for targeted broadcasting
+    subscription_filter = f"project:{project_id}"
+    
     # Use ConnectionManager to broadcast to relevant clients
-    await connection_manager.broadcast(message)
+    await connection_manager.broadcast(message, subscription_filter=subscription_filter)
 
 
 async def broadcast_file_monitoring_update(
-    file_data: Dict[str, Any],
+    file_data,
     update_type: str = "file_update"
 ):
     """
     Broadcast file monitoring updates to connected clients.
     
     Args:
-        file_data: File change data to broadcast
-        update_type: Type of file update (new_file, file_changed, etc.)
+        file_data: File change data to broadcast (ConversationData model or dict)
+        update_type: Type of file update (file_created, file_modified, file_deleted, etc.)
         
     Behavior defined by tests:
     - Trigger WebSocket updates when file monitoring detects changes
@@ -130,8 +143,22 @@ async def broadcast_file_monitoring_update(
     - Include performance metrics in updates
     - Maintain <50ms latency requirement
     """
-    # To be implemented based on test requirements
-    pass
+    # Handle both ConversationData model and dict inputs
+    if hasattr(file_data, 'model_dump'):
+        # Pydantic model - serialize to dict
+        data_dict = file_data.model_dump(mode='json')
+    else:
+        # Already a dict
+        data_dict = file_data
+    
+    # Create file event message using the specific update_type
+    message = {
+        "type": update_type,  # Use the specific update type (file_created, file_modified, etc.)
+        "data": data_dict
+    }
+    
+    # Broadcast to clients subscribed to "file_events"
+    await connection_manager.broadcast(message, subscription_filter="file_events")
 
 
 def get_connection_manager() -> ConnectionManager:
