@@ -138,9 +138,9 @@ class TestBroadcastErrorHandling:
             failed_connections = await connection_manager.broadcast(invalid_data)
             
             # Assert
-            # The broadcast system should handle the JSON error gracefully
-            assert isinstance(failed_connections, list)
-
+            # Verify that the connection with serialization error is marked as failed
+            assert len(failed_connections) == 1, "Connection with JSON error should be marked as failed"
+            assert client_id in failed_connections, "Failed client should be recorded"
     @pytest.mark.asyncio
     async def test_broadcast_handles_network_timeout_error(self, broadcaster, mock_websocket):
         """Test 6.3.1: Broadcast handles network timeout errors"""
