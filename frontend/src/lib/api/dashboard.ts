@@ -191,11 +191,9 @@ class DashboardService {
 		try {
 			log('Loading initial dashboard data...');
 			
-			// Load analytics data
-			const analyticsResponse = await apiClient.get<Analytics>('/analytics');
-			
-			// Load projects and conversations in parallel
-			const [projectsResponse, conversationsResponse] = await Promise.all([
+			// Load all initial data in parallel
+			const [analyticsResponse, projectsResponse, conversationsResponse] = await Promise.all([
+				apiClient.get<Analytics>('/analytics'),
 				apiClient.get<Project[]>('/projects'),
 				apiClient.get<Conversation[]>('/conversations')
 			]);

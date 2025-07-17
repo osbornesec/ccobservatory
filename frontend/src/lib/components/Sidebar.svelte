@@ -98,13 +98,6 @@
 		dispatch('toggle', { collapsed });
 	}
 
-	// Reactive announcement for collapsed state changes
-	$: if (browser && typeof collapsed !== 'undefined') {
-		accessibilityStore.announce(
-			`Sidebar is now ${collapsed ? 'collapsed' : 'expanded'}`,
-			'polite'
-		);
-	}
 </script>
 
 <!-- Sidebar navigation with proper ARIA landmarks and semantic structure -->

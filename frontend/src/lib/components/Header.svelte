@@ -22,7 +22,7 @@
 	// Update announcements when page changes
 	$: if (browser && currentPage) {
 		accessibilityStore.announce(
-			`Current page: ${currentPage}`,
+			`Navigated to ${currentPage}`,
 			'polite'
 		);
 	}
