@@ -533,7 +533,7 @@ describe('Main Page Component', () => {
 		const endPattern = /}\s*finally\s*\{[\s\S]*?\}\s*\}\);/;
 		const match = onMountContent.match(endPattern);
 		expect(match).not.toBeNull();
-		const onMountEnd = onMountStart + match!.index + match![0].length;
+		const onMountEnd = match ? onMountStart + match.index! + match[0].length : onMountStart;
 		expect(onMountEnd).toBeGreaterThan(onMountStart);
 
 		// conversation_update handler is registered inside onMount
