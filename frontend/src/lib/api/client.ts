@@ -292,7 +292,7 @@ export const api = {
 	},
 
 	// Search
-	async search(query: string, filters?: any) {
+	async search(query: string, filters?: import('$lib/types').SearchFilters) {
 		return apiClient.post('/search', { query, filters });
 	}
 };
