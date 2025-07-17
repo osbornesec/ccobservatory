@@ -100,9 +100,7 @@ export interface WebSocketMessage<T = any> {
 	timestamp: number;
 }
 
-export interface WebSocketEventHandler<T = any> {
-	(data: T): void;
-}
+export type WebSocketEventHandler<T = any> = (data: T) => void;
 
 export interface WebSocketConfig {
 	url: string;
