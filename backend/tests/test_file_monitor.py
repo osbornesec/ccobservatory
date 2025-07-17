@@ -152,6 +152,7 @@ class TestFileMonitor:
                             from app.models.contracts import ConversationData
                             conversation_data = ConversationData(
                                 project_id=uuid4(),
+                                file_path="/test/file_monitor/conversation.jsonl",
                                 session_id="test-session",
                                 title="Test Conversation",
                                 message_count=1,
@@ -328,6 +329,7 @@ class TestFileMonitor:
                         from app.models.contracts import ConversationData
                         conversation_data = ConversationData(
                             project_id=uuid4(),
+                            file_path="/test/file_monitor/failure_conversation.jsonl",
                             session_id="test-session",
                             title="Test Conversation",
                             message_count=1,

@@ -5,7 +5,7 @@ Tests written one at a time, with minimal implementation to pass each test.
 
 import asyncio
 import pytest
-from unittest.mock import Mock, AsyncMock, MagicMock
+from unittest.mock import Mock, AsyncMock, MagicMock, call
 from uuid import UUID, uuid4
 
 from app.monitoring.database_writer import DatabaseWriter
@@ -42,6 +42,7 @@ class TestDatabaseWriter:
         project_id = uuid4()
         conversation_data = ConversationData(
             project_id=project_id,
+            file_path="/test/path/conversation.jsonl",
             session_id="test-session-123",
             title="Test Conversation",
             message_count=2,
@@ -73,6 +74,7 @@ class TestDatabaseWriter:
         project_id = uuid4()
         conversation_data = ConversationData(
             project_id=project_id,
+            file_path="/test/path/error_conversation.jsonl",
             session_id="test-session-456",
             title="Test Conversation with Error",
             message_count=1,
@@ -106,6 +108,7 @@ class TestDatabaseWriter:
         project_id = uuid4()
         conversation_data = ConversationData(
             project_id=project_id,
+            file_path="/test/path/unexpected_error_conversation.jsonl",
             session_id="test-session-789",
             title="Test Conversation with Unexpected Error",
             message_count=1,
@@ -157,6 +160,7 @@ class TestDatabaseWriter:
         project_id = uuid4()
         conversation_data = ConversationData(
             project_id=project_id,
+            file_path="/test/path/messages_conversation.jsonl",
             session_id="test-session-with-messages",
             title="Test Conversation with Messages",
             message_count=2,
@@ -190,6 +194,7 @@ class TestDatabaseWriter:
         project_id = uuid4()
         conversation_data = ConversationData(
             project_id=project_id,
+            file_path="/test/path/retry_conversation.jsonl",
             session_id="test-session-retry",
             title="Test Conversation for Retry Logic",
             message_count=0,
@@ -245,6 +250,7 @@ class TestDatabaseWriter:
         project_id = uuid4()
         conversation_data = ConversationData(
             project_id=project_id,
+            file_path="/test/path/update_conversation.jsonl",
             session_id="test-session-update",
             title="Updated Test Conversation",
             message_count=5,
@@ -346,6 +352,13 @@ class TestDatabaseWriter:
         mock_table = MagicMock()
         mock_client.table.return_value = mock_table
         
+        # Mock the deduplication check (returns empty list - no existing messages)
+        mock_select = MagicMock()
+        mock_table.select.return_value = mock_select
+        mock_in = MagicMock()
+        mock_select.in_.return_value = mock_in
+        mock_in.execute.return_value = MagicMock(data=[])  # No existing messages
+        
         # Mock the upsert operation
         mock_upsert = MagicMock()
         mock_table.upsert.return_value = mock_upsert
@@ -354,16 +367,25 @@ class TestDatabaseWriter:
         # Call the method under test
         writer._batch_upsert_messages(conversation_id, messages)
         
+        # Verify deduplication check was performed
+        mock_table.select.assert_called_once_with("message_id")
+        mock_select.in_.assert_called_once_with("message_id", ["msg-1", "msg-2"])
+        mock_in.execute.assert_called_once()
+        
         # Verify upsert operation was called
         mock_table.upsert.assert_called_once()
         mock_upsert.execute.assert_called_once()
         
-        # Verify the correct table was accessed
-        mock_client.table.assert_called_once_with("messages")
+        # Verify the correct table was accessed (table method should be called for both deduplication and upsert)
+        assert mock_client.table.call_count == 2
+        # Verify both calls were to the messages table
+        table_calls = mock_client.table.call_args_list
+        assert table_calls[0][0][0] == "messages"  # First call for deduplication
+        assert table_calls[1][0][0] == "messages"  # Second call for upsert
         
         # Verify upsert was called with correct parameters
         upsert_call_args = mock_table.upsert.call_args
-        assert upsert_call_args[1]["on_conflict"] == "conversation_id, message_id"
+        assert upsert_call_args[1]["on_conflict"] == "message_id"
         
         # Verify payload structure
         payload = upsert_call_args[0][0]

@@ -38,10 +38,14 @@
 # backend/app/monitoring/file_watcher.py
 import asyncio
 import logging
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Callable
+from typing import Union, List, Dict, Optional, Callable
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class FileEvent:
@@ -91,7 +95,7 @@ class ConversationFileHandler(FileSystemEventHandler):
             self._debounce_events[event_key].cancel()
         
         # Create new debounce timer
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         handle = loop.call_later(
             self._debounce_delay,
             self._process_event,

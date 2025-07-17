@@ -235,5 +235,5 @@ class TestBroadcastErrorHandling:
         assert isinstance(failed_connections, list)
         
         # Verify that the error was logged
-        assert "Failed to send message" in caplog.text
+        assert "Unexpected error sending to connection" in caplog.text
         assert "no close frame received or sent" in caplog.text

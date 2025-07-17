@@ -21,44 +21,14 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
 
-# Note: These imports will be implemented as we build the features
-# from app.websocket.server import WebSocketServer
-# from app.websocket.message_queue import PriorityMessageQueue, MessagePriority
-# from app.websocket.persistence import MessagePersistence
-# from app.websocket.rate_limiter import TokenBucketRateLimiter
-# from app.websocket.compression import MessageCompressor
+# Import WebSocket feature classes
+from app.websocket.message_queue import PriorityMessageQueue, MessagePriority, PriorityMessage
+from app.websocket.persistence import MessagePersistence, PersistedMessage
+from app.websocket.rate_limiter import TokenBucketRateLimiter
+from app.websocket.compression import MessageCompressor
 
 
-# Message Priority Enumeration (needed for dataclass)
-class MessagePriority:
-    """Message priority enumeration"""
-    HIGH = 1
-    NORMAL = 2
-    LOW = 3
-
-
-# Test Data Structures
-@dataclass
-class PriorityMessage:
-    """Message with priority for testing"""
-    content: str
-    priority: MessagePriority
-    timestamp: float
-    client_id: str
-    
-    def __lt__(self, other):
-        """Lower priority value = higher priority (min heap)"""
-        return self.priority.value < other.priority.value
-
-
-@dataclass
-class PersistedMessage:
-    """Persisted message for testing"""
-    id: str
-    content: str
-    timestamp: float
-    channel: str
-    expires_at: Optional[float] = None
+# Test Data Structures are now imported from their respective modules
 
 
 class TestMessagePriorityBroadcast:
@@ -454,139 +424,7 @@ class TestMessageCompression:
         assert len(sent_data) < len(large_message.encode())
 
 
-# Mock Classes for Testing (to be implemented)
-class PriorityMessageQueue:
-    """Mock priority message queue for testing"""
-    
-    def __init__(self):
-        self._queue = []
-        self._entry_finder = {}
-        self._counter = 0
-    
-    def enqueue(self, message: PriorityMessage):
-        """Add message to priority queue"""
-        # Handle both enum-like objects and direct integer values
-        priority_value = message.priority.value if hasattr(message.priority, 'value') else message.priority
-        entry = [priority_value, self._counter, message]
-        self._entry_finder[message.client_id] = entry
-        heapq.heappush(self._queue, entry)
-        self._counter += 1
-    
-    def dequeue(self) -> Optional[PriorityMessage]:
-        """Remove and return highest priority message"""
-        while self._queue:
-            priority, count, message = heapq.heappop(self._queue)
-            if message is not None:
-                del self._entry_finder[message.client_id]
-                return message
-        return None
-    
-    def size(self) -> int:
-        """Return queue size"""
-        return len([entry for entry in self._queue if entry[2] is not None])
-    
-    def is_empty(self) -> bool:
-        """Check if queue is empty"""
-        return self.size() == 0
-
-
-class MessagePersistence:
-    """Mock message persistence for testing"""
-    
-    def __init__(self):
-        self.storage = {}
-    
-    def persist_message(self, message: PersistedMessage) -> bool:
-        """Store message in persistence layer"""
-        self.storage[message.id] = message
-        return True
-    
-    def message_exists(self, message_id: str) -> bool:
-        """Check if message exists in storage"""
-        return message_id in self.storage
-    
-    def get_messages_for_channel(self, channel: str) -> List[PersistedMessage]:
-        """Get all messages for a channel"""
-        return [msg for msg in self.storage.values() if msg.channel == channel]
-    
-    def cleanup_expired_messages(self):
-        """Remove expired messages from storage"""
-        current_time = time.time()
-        expired_ids = [
-            msg_id for msg_id, msg in self.storage.items()
-            if msg.expires_at and msg.expires_at < current_time
-        ]
-        for msg_id in expired_ids:
-            del self.storage[msg_id]
-
-
-class TokenBucketRateLimiter:
-    """Mock token bucket rate limiter for testing"""
-    
-    def __init__(self, capacity: int, refill_rate: float):
-        self.capacity = capacity
-        self.refill_rate = refill_rate
-        self.tokens = capacity
-        self.last_refill = time.time()
-    
-    def allow_request(self) -> bool:
-        """Check if request is allowed and consume token"""
-        self.refill_tokens()
-        
-        if self.tokens > 0:
-            self.tokens -= 1
-            return True
-        return False
-    
-    def refill_tokens(self):
-        """Refill tokens based on elapsed time"""
-        now = time.time()
-        elapsed = now - self.last_refill
-        new_tokens = elapsed * self.refill_rate
-        
-        self.tokens = min(self.capacity, self.tokens + new_tokens)
-        self.last_refill = now
-
-
-class MessageCompressor:
-    """Mock message compressor for testing"""
-    
-    def __init__(self, compression_level: int = 6, min_size_for_compression: int = 1024, 
-                 min_compression_ratio: float = 0.1):
-        self.compression_level = compression_level
-        self.min_size_for_compression = min_size_for_compression
-        self.min_compression_ratio = min_compression_ratio
-    
-    def compress(self, message: str) -> bytes:
-        """Compress message using zlib"""
-        return zlib.compress(message.encode(), self.compression_level)
-    
-    def decompress(self, compressed_data: bytes) -> str:
-        """Decompress message using zlib"""
-        return zlib.decompress(compressed_data).decode()
-    
-    def calculate_compression_ratio(self, original: str, compressed: bytes) -> float:
-        """Calculate compression ratio"""
-        original_size = len(original.encode())
-        compressed_size = len(compressed)
-        return (original_size - compressed_size) / original_size
-    
-    def compress_if_beneficial(self, message: str) -> bytes:
-        """Compress only if beneficial"""
-        message_bytes = message.encode()
-        
-        # Skip compression for small messages
-        if len(message_bytes) < self.min_size_for_compression:
-            return message_bytes
-        
-        # Try compression
-        compressed = self.compress(message)
-        ratio = self.calculate_compression_ratio(message, compressed)
-        
-        # Use compression only if beneficial
-        if ratio >= self.min_compression_ratio:
-            return compressed
-        return message_bytes
+# Mock classes have been moved to their dedicated modules in app/websocket/
 
 
 # Mock WebSocket Server Extensions for Testing

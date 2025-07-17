@@ -241,24 +241,66 @@ class DatabaseWriter:
 
         # Prepare message payloads with correct foreign key
         messages_payload = []
+        message_ids_to_insert = []
+        
         for msg in messages:
             msg.conversation_id = conversation_id  # Set correct foreign key
-            payload = msg.model_dump(exclude={"id", "message_id"}, exclude_none=True, by_alias=True)
+            # Include message_id for idempotency and unique identification
+            payload = msg.model_dump(exclude={"id"}, exclude_none=True, by_alias=True)
             # Ensure UUIDs are stringified for JSON payload
             payload["conversation_id"] = str(payload["conversation_id"])
             # Ensure datetime objects are stringified for JSON payload
             if "timestamp" in payload:
                 payload["timestamp"] = payload["timestamp"].isoformat()
+            
             messages_payload.append(payload)
+            message_ids_to_insert.append(msg.message_id)
+        
+        # Application-level deduplication check
+        try:
+            # Check for existing messages with the same message_ids
+            existing_check = (
+                self._client.table(MESSAGES_TABLE)
+                .select("message_id")
+                .in_("message_id", message_ids_to_insert)
+                .execute()
+            )
+            
+            existing_message_ids = {row["message_id"] for row in existing_check.data}
+            
+            # Filter out messages that already exist
+            if existing_message_ids:
+                logger.debug(f"Found {len(existing_message_ids)} existing messages, filtering duplicates")
+                messages_payload = [
+                    payload for payload in messages_payload 
+                    if payload["message_id"] not in existing_message_ids
+                ]
+            
+            # If no new messages to insert, return early
+            if not messages_payload:
+                logger.debug("All messages already exist, skipping insert")
+                return
+                
+        except Exception as e:
+            # If deduplication check fails, continue with upsert as fallback
+            logger.warning(f"Deduplication check failed, continuing with upsert: {e}")
+            pass
 
         for attempt in range(MAX_RETRIES):
             try:
-                # Use regular insert for now (messages have UUID primary keys)
+                # Use upsert to prevent duplicates on retries
+                # Using message_id as unique identifier for idempotency
                 response = (
                     self._client.table(MESSAGES_TABLE)
-                    .insert(messages_payload)
+                    .upsert(messages_payload, on_conflict="message_id")
                     .execute()
                 )
+                
+                # Verify the upsert succeeded by checking response
+                if not response.data:
+                    logger.warning(f"Upsert returned empty data for {len(messages_payload)} messages")
+                else:
+                    logger.debug(f"Successfully upserted {len(response.data)} messages")
 
                 logger.debug(
                     f"Batch upserted {len(messages_payload)} messages "

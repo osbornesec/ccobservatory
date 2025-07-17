@@ -187,6 +187,7 @@ class TestConversationData:
 
         conversation = ConversationData(
             project_id=project_id,
+            file_path="/test/path/conversation.jsonl",
             session_id="session_abc123",
             title="Test Conversation",
             message_count=2,
@@ -203,6 +204,7 @@ class TestConversationData:
         with pytest.raises(ValidationError):
             ConversationData(
                 project_id=uuid4(),
+                file_path="/test/invalid/conversation.jsonl",
                 session_id="session_123",
                 message_count=-1,  # Invalid negative count
             )

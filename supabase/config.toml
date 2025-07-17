@@ -15,9 +15,9 @@ max_rows = 1000
 enabled = true
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:5173", "http://localhost:8000"]
-jwt_expiry = 3600
+jwt_expiry = 900  # 15 minutes for better security with sensitive conversation data
 enable_refresh_token_rotation = true
-enable_signup = true
+enable_signup = false  # Disable public signup for controlled access to conversation monitoring
 
 [auth.external.github]
 enabled = false
@@ -50,4 +50,4 @@ smtp_port = 54325
 pop3_port = 54326
 
 [analytics]
-enabled = false
+enabled = true  # Enable Supabase analytics for built-in monitoring capabilities

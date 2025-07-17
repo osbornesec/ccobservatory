@@ -60,25 +60,25 @@ class BroadcastManager:
             try:
                 if hasattr(connection, 'closed') and connection.closed:
                     return connection_id
-                    
-async def send_to_connection(connection_id: str, connection: Any) -> Optional[str]:
-    try:
-        if hasattr(connection, 'closed') and connection.closed:
-            return connection_id
 
-        if not hasattr(connection, 'send'):
-            logger.error(f"Connection {connection_id} does not have send method")
-            return connection_id
+                if not hasattr(connection, 'send'):
+                    logger.error(f"Connection {connection_id} does not have send method")
+                    return connection_id
 
-        await connection.send(message)
-        return None
-    except Exception as e:
-        logger.warning(f"Failed to send message to connection {connection_id}: {e}")
-        return connection_id
+                await connection.send(message)
                 return None
-            except Exception as e:
-                logger.warning(f"Failed to send message to connection {connection_id}: {e}")
+            except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError, OSError) as e:
+                # Network-level connection errors
+                logger.warning(f"Connection error for {connection_id}: {e}")
                 return connection_id
+            except RuntimeError as e:
+                # WebSocket connection closed or in invalid state
+                logger.warning(f"WebSocket runtime error for {connection_id}: {e}")
+                return connection_id
+            except Exception as e:
+                # Log unexpected errors but don't mask them - re-raise for debugging
+                logger.error(f"Unexpected error sending to connection {connection_id}: {e}")
+                raise
         
         # Create tasks for all connections
         tasks = [

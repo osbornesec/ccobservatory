@@ -295,6 +295,7 @@ class JSONLParser:
             conversation = ConversationData(
                 id=conversation_id,
                 project_id=project_id,
+                file_path=file_path,
                 session_id=session_id or "unknown",
                 title=f"Conversation from {file_path}",
                 message_count=len(messages),
