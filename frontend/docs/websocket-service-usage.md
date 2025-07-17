@@ -320,12 +320,16 @@ describe('WebSocketClient', () => {
     client.on('test_message', handler);
     client.connect();
     
-    // Simulate receiving a message
+    // Simulate receiving a message by triggering the mock WebSocket's onmessage
     const message = {
       type: 'test_message',
       data: { test: true },
       timestamp: Date.now()
     };
+    
+    // Trigger the message event on the mocked WebSocket
+    const mockWs = vi.mocked(global.WebSocket).mock.instances[0];
+    mockWs.onmessage({ data: JSON.stringify(message) } as MessageEvent);
     
     // Test message handling
     expect(handler).toHaveBeenCalledWith({ test: true });

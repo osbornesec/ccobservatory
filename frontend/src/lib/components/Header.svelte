@@ -46,8 +46,6 @@
 			<h1 
 				class="text-xl font-bold text-base-content"
 				id="app-title"
-				role="heading"
-				aria-level="1"
 				tabindex="-1"
 			>
 				<span class="sr-only">Welcome to </span>
@@ -65,8 +63,8 @@
 					role="navigation"
 					aria-label="Primary site navigation"
 				>
-					<ul class="flex space-x-4" role="list">
-						<li role="listitem">
+					<ul class="flex space-x-4">
+						<li>
 							<a 
 								href="/"
 								class="text-base-content hover:text-primary focus:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm px-2 py-1"
@@ -76,7 +74,7 @@
 								Dashboard
 							</a>
 						</li>
-						<li role="listitem">
+						<li>
 							<a 
 								href="/conversations"
 								class="text-base-content hover:text-primary focus:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm px-2 py-1"
@@ -86,7 +84,7 @@
 								Conversations
 							</a>
 						</li>
-						<li role="listitem">
+						<li>
 							<a 
 								href="/settings"
 								class="text-base-content hover:text-primary focus:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm px-2 py-1"
@@ -108,8 +106,8 @@
 				role="navigation"
 				aria-label="Breadcrumb navigation"
 			>
-				<ol class="flex items-center space-x-2 text-sm text-base-content/70" role="list">
-					<li role="listitem">
+				<ol class="flex items-center space-x-2 text-sm text-base-content/70">
+					<li>
 						<a 
 							href="/"
 							class="hover:text-primary focus:text-primary focus:outline-none focus:ring-1 focus:ring-primary rounded-sm"
@@ -118,8 +116,8 @@
 							Dashboard
 						</a>
 					</li>
-					<li role="listitem" aria-hidden="true">/</li>
-					<li role="listitem">
+					<li aria-hidden="true">/</li>
+					<li>
 						<span aria-current="page" class="font-medium text-base-content">
 							{currentPage}
 						</span>

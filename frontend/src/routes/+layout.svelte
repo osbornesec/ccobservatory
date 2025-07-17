@@ -46,7 +46,6 @@
 <div 
 	class="min-h-screen bg-base-100" 
 	data-testid="layout-container"
-	role="application"
 	aria-label="Claude Code Observatory"
 >
 	<!-- Page wrapper with proper landmark structure -->
@@ -55,7 +54,6 @@
 		<main 
 			id="main-content"
 			class="flex-1"
-			role="main"
 			aria-label="Main application content"
 		>
 			<slot />

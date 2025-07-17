@@ -154,13 +154,12 @@
 		<nav 
 			id="sidebar-nav"
 			class="space-y-2"
-			role="navigation"
 			aria-label="Sidebar navigation menu"
 		>
 			<!-- Navigation items list -->
-			<ul class="space-y-1" role="list">
+			<ul class="space-y-1">
 				{#each navigationItems as item, index}
-					<li role="listitem">
+					<li>
 						<a 
 							href={item.href}
 							class="group flex items-center px-4 py-2 text-sm font-medium text-base-content rounded-md hover:bg-base-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:bg-base-300 transition-colors"
@@ -169,7 +168,6 @@
 							aria-current={currentPage === item.label ? 'page' : 'false'}
 							aria-label={item.ariaLabel || `Navigate to ${item.label}`}
 							tabindex="0"
-							role="link"
 							on:click={() => handleNavItemClick(item)}
 						>
 							<!-- Icon placeholder -->
