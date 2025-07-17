@@ -208,7 +208,7 @@ public async post<T>(endpoint: string, data?: Record<string, unknown>): Promise<
 		return this.get(`/projects/${id}`);
 	}
 
-	public async createProject(data: any) {
+	public async createProject(data: Partial<import('$lib/types').Project>) {
 		return this.post('/projects', data);
 	}
 
@@ -220,7 +220,7 @@ public async post<T>(endpoint: string, data?: Record<string, unknown>): Promise<
 		return this.get(`/conversations/${id}`);
 	}
 
-	public async search(query: string, filters?: any) {
+	public async search(query: string, filters?: import('$lib/types').SearchFilters) {
 		return this.post('/search', { query, filters });
 	}
 
@@ -292,7 +292,7 @@ export const api = {
 	},
 
 	// Search
-	async search(query: string, filters?: any) {
+	async search(query: string, filters?: import('$lib/types').SearchFilters) {
 		return apiClient.post('/search', { query, filters });
 	}
 };
