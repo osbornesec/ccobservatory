@@ -17,14 +17,26 @@ class TokenBucketRateLimiter:
         self.tokens = capacity
         self.last_refill = time.time()
     
+import threading
+
+class TokenBucketRateLimiter:
+    def __init__(self, capacity: int, refill_rate: float) -> None:
+        # ... existing validation ...
+        self.capacity = capacity
+        self.refill_rate = refill_rate
+        self.tokens = float(capacity)
+        self.last_refill = time.time()
+        self._lock = threading.Lock()
+
     def allow_request(self) -> bool:
         """Check if request is allowed and consume token"""
-        self.refill_tokens()
-        
-        if self.tokens > 0:
-            self.tokens -= 1
-            return True
-        return False
+        with self._lock:
+            self.refill_tokens()
+            
+            if self.tokens > 0:
+                self.tokens -= 1
+                return True
+            return False
     
     def refill_tokens(self):
         """Refill tokens based on elapsed time"""
