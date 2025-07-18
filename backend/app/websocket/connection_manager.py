@@ -126,9 +126,9 @@ class ConnectionManager:
         
         # If no filter, send to all clients (existing behavior)
         if subscription_filter is None:
-            for client_id, websocket in self.active_connections.items():
-                try:
-                    await websocket.send_text(message_json)
+            # Create a copy of the items to avoid modifying dict during iteration
+            connections_copy = list(self.active_connections.items())
+            for client_id, websocket in connections_copy:
                 try:
                     await websocket.send_text(message_json)
                 except (WebSocketDisconnect, RuntimeError):
@@ -136,7 +136,6 @@ class ConnectionManager:
                     failed_clients.append(client_id)
                     # Clean up disconnected client
                     self.disconnect(client_id)
-                    continue
                     continue
         else:
             # Collect all client IDs that should receive this message
@@ -163,6 +162,8 @@ class ConnectionManager:
                     except (WebSocketDisconnect, RuntimeError):
                         # Client disconnected or connection error, track failure and continue
                         failed_clients.append(client_id)
+                        # Clean up disconnected client
+                        self.disconnect(client_id)
                         continue
         
         # Return list of failed clients

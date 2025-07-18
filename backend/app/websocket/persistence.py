@@ -8,35 +8,59 @@ allowing messages to be stored and retrieved for offline clients or replay scena
 import time
 import logging
 import threading
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from typing import Optional, List, Dict
 from collections import OrderedDict
+from uuid import UUID
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class PersistedMessage:
-    """Persisted message for WebSocket broadcasting"""
+    """Persisted message for WebSocket broadcasting.
+    
+    Attributes:
+        id: Unique message identifier
+        content: Message content (should be JSON serializable)
+        timestamp: Message creation timestamp
+        channel: Channel/topic for message routing
+        expires_at: Optional expiration timestamp
+    """
     id: str
     content: str
-    timestamp: float
+    timestamp: datetime
     channel: str
-    expires_at: Optional[float] = None
+    expires_at: Optional[datetime] = None
+
+    def __post_init__(self):
+        """Validate message data after initialization."""
+        if not self.id.strip():
+            raise ValueError("Message ID cannot be empty")
+        if not self.channel.strip():
+            raise ValueError("Channel cannot be empty")
+        if self.expires_at and self.expires_at <= self.timestamp:
+            raise ValueError("Expiration time must be after timestamp")
 
 
 class MessagePersistence:
-    """Message persistence for WebSocket broadcasting with capacity limits and error handling"""
+    """Message persistence for WebSocket broadcasting with capacity limits, error handling, and thread safety"""
     
-    def __init__(self, max_capacity: int = 10000):
+    def __init__(self, max_messages: int = 10000, auto_cleanup_interval: int = 300):
         """
         Initialize message persistence with capacity limits and thread safety.
         
         Args:
-            max_capacity: Maximum number of messages to store. Defaults to 10,000.
+            max_messages: Maximum number of messages to store. Defaults to 10,000.
+            auto_cleanup_interval: Interval in seconds for automatic cleanup
         """
-        self.max_capacity = max_capacity
+        self.max_messages = max_messages
+        self.auto_cleanup_interval = auto_cleanup_interval
         self.storage: OrderedDict[str, PersistedMessage] = OrderedDict()
         self.logger = logging.getLogger(__name__)
         self._lock = threading.Lock()
+        self._last_cleanup = datetime.now(timezone.utc)
     
     def persist_message(self, message: PersistedMessage) -> bool:
         """
@@ -52,11 +76,10 @@ class MessagePersistence:
         try:
             with self._lock:
                 # Check if we've reached capacity
-                if len(self.storage) >= self.max_capacity:
+                if len(self.storage) >= self.max_messages:
                     if message.id not in self.storage:
                         # Remove the oldest message to make room
-                        oldest_id, oldest_msg = self.storage.popitem(last=False)
-                        self.logger.info(f"Storage capacity reached ({self.max_capacity}). Removed oldest message {oldest_id}")
+                        self._cleanup_oldest_messages()
                 
                 # Store the message (updates existing or adds new)
                 self.storage[message.id] = message
@@ -82,23 +105,49 @@ class MessagePersistence:
         with self._lock:
             return [msg for msg in self.storage.values() if msg.channel == channel]
     
-    def cleanup_expired_messages(self):
-        """Remove expired messages from storage. Thread-safe operation."""
+    def cleanup_expired_messages(self) -> int:
+        """Remove expired messages from storage. Thread-safe operation.
+
+        Returns:
+            Number of messages cleaned up
+        """
         try:
             with self._lock:
-                current_time = time.time()
+                current_time = datetime.now(timezone.utc)
                 expired_ids = [
                     msg_id for msg_id, msg in self.storage.items()
                     if msg.expires_at and msg.expires_at < current_time
                 ]
+
                 for msg_id in expired_ids:
                     del self.storage[msg_id]
-                
+
                 if expired_ids:
                     self.logger.info(f"Cleaned up {len(expired_ids)} expired messages")
+
+                self._last_cleanup = current_time
+                return len(expired_ids)
                 
         except Exception as e:
             self.logger.error(f"Error during cleanup of expired messages: {str(e)}", exc_info=True)
+            return 0
+
+    def _cleanup_oldest_messages(self):
+        """Remove oldest messages when capacity is exceeded."""
+        if len(self.storage) < self.max_messages:
+            return
+
+        # Remove 10% of oldest messages
+        remove_count = max(1, int(self.max_messages * 0.1))
+        sorted_messages = sorted(
+            self.storage.items(),
+            key=lambda x: x[1].timestamp
+        )
+
+        for msg_id, _ in sorted_messages[:remove_count]:
+            del self.storage[msg_id]
+
+        self.logger.info(f"Cleaned up {remove_count} oldest messages due to capacity limit")
     
     def get_storage_stats(self) -> Dict[str, int]:
         """Get storage statistics. Thread-safe operation."""
@@ -106,13 +155,13 @@ class MessagePersistence:
             storage_len = len(self.storage)
             return {
                 "total_messages": storage_len,
-                "max_capacity": self.max_capacity,
-                "available_capacity": self.max_capacity - storage_len,
-                "capacity_usage_percent": int((storage_len / self.max_capacity) * 100)
+                "max_capacity": self.max_messages,
+                "available_capacity": self.max_messages - storage_len,
+                "capacity_usage_percent": int((storage_len / self.max_messages) * 100)
             }
     
     def is_near_capacity(self, threshold_percent: float = 90.0) -> bool:
         """Check if storage is near capacity. Thread-safe operation."""
         with self._lock:
-            usage_percent = (len(self.storage) / self.max_capacity) * 100
+            usage_percent = (len(self.storage) / self.max_messages) * 100
             return usage_percent >= threshold_percent

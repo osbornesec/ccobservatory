@@ -11,15 +11,9 @@ Following Canon TDD methodology - implement one test at a time.
 """
 
 import pytest
-import asyncio
-import heapq
 import json
 import time
-import zlib
 from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime, timedelta
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Any
 
 # Import WebSocket feature classes
 from app.websocket.message_queue import PriorityMessageQueue, MessagePriority, PriorityMessage

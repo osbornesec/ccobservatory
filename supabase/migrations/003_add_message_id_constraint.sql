@@ -36,13 +36,9 @@ ADD CONSTRAINT messages_message_id_unique UNIQUE (message_id);
 -- For any existing records without message_id, generate one based on timestamp and role
 -- This is safe for existing data and provides backward compatibility
 UPDATE messages 
-SET message_id = CONCAT(
-    role, 
-    '-', 
-    EXTRACT(EPOCH FROM timestamp)::TEXT, 
-    '-', 
-    SUBSTRING(id::TEXT FROM 1 FOR 8)
-)
+SET message_id = role || '-' || EXTRACT(EPOCH FROM timestamp)::TEXT || '-' || 
+    SUBSTRING(id::TEXT FROM 1 FOR 8) || '-' || 
+    LPAD(EXTRACT(MICROSECONDS FROM timestamp)::TEXT, 6, '0')
 WHERE message_id IS NULL;
 
 -- =============================================================================
