@@ -39,12 +39,50 @@ class MessagePersistence:
         """Get all messages for a channel"""
         return [msg for msg in self.storage.values() if msg.channel == channel]
     
+# Add at the top of the file
+import threading
+from datetime import datetime, timezone
+
+class MessagePersistence:
+    def __init__(self, max_messages: int = 10000, auto_cleanup_interval: int = 300):
+        # ... existing initialization ...
+        self._lock = threading.Lock()
+
     def cleanup_expired_messages(self):
-        """Remove expired messages from storage"""
-        current_time = time.time()
-        expired_ids = [
-            msg_id for msg_id, msg in self.storage.items()
-            if msg.expires_at and msg.expires_at < current_time
-        ]
-        for msg_id in expired_ids:
+        """Remove expired messages from storage.
+
+        Returns:
+            Number of messages cleaned up
+        """
+        with self._lock:
+            current_time = datetime.now(timezone.utc)
+            expired_ids = [
+                msg_id for msg_id, msg in self.storage.items()
+                if msg.expires_at and msg.expires_at < current_time
+            ]
+
+            for msg_id in expired_ids:
+                del self.storage[msg_id]
+
+            if expired_ids:
+                logger.info(f"Cleaned up {len(expired_ids)} expired messages")
+
+            self._last_cleanup = current_time
+            return len(expired_ids)
+
+    def _cleanup_oldest_messages(self):
+        """Remove oldest messages when capacity is exceeded."""
+        if len(self.storage) < self.max_messages:
+            return
+
+        # Remove 10% of oldest messages
+        remove_count = max(1, int(self.max_messages * 0.1))
+        sorted_messages = sorted(
+            self.storage.items(),
+            key=lambda x: x[1].timestamp
+        )
+
+        for msg_id, _ in sorted_messages[:remove_count]:
             del self.storage[msg_id]
+
+        logger.info(f"Cleaned up {remove_count} oldest messages due to capacity limit")
