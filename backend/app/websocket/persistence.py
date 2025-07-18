@@ -10,15 +10,36 @@ from dataclasses import dataclass
 from typing import Optional, List, Dict
 
 
+from datetime import datetime, timezone
+from dataclasses import dataclass
+from typing import Optional, List, Dict
+from uuid import UUID
+
 @dataclass
 class PersistedMessage:
-    """Persisted message for WebSocket broadcasting"""
+    """Persisted message for WebSocket broadcasting.
+    
+    Attributes:
+        id: Unique message identifier
+        content: Message content (should be JSON serializable)
+        timestamp: Message creation timestamp
+        channel: Channel/topic for message routing
+        expires_at: Optional expiration timestamp
+    """
     id: str
     content: str
-    timestamp: float
+    timestamp: datetime
     channel: str
-    expires_at: Optional[float] = None
+    expires_at: Optional[datetime] = None
 
+    def __post_init__(self):
+        """Validate message data after initialization."""
+        if not self.id.strip():
+            raise ValueError("Message ID cannot be empty")
+        if not self.channel.strip():
+            raise ValueError("Channel cannot be empty")
+        if self.expires_at and self.expires_at <= self.timestamp:
+            raise ValueError("Expiration time must be after timestamp")
 
 class MessagePersistence:
     """Message persistence for WebSocket broadcasting"""
