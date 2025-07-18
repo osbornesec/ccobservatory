@@ -29,7 +29,9 @@ class PriorityMessage:
     
     def __lt__(self, other):
         """Lower priority value = higher priority (min heap)"""
-        return self.priority.value < other.priority.value
+        self_priority = self.priority.value if hasattr(self.priority, 'value') else self.priority
+        other_priority = other.priority.value if hasattr(other.priority, 'value') else other.priority
+        return self_priority < other_priority
 
 
 class PriorityMessageQueue:
