@@ -52,9 +52,17 @@ class TokenBucketRateLimiter:
             return False
     
     def refill_tokens(self):
-        """Refill tokens based on elapsed time"""
+        """Refill tokens based on elapsed time.
+        
+        Note: This method should be called with the lock held.
+        """
         now = time.time()
         elapsed = now - self.last_refill
+        
+        # Avoid negative elapsed time (system clock changes)
+        if elapsed < 0:
+            elapsed = 0
+            
         new_tokens = elapsed * self.refill_rate
         
         self.tokens = min(self.capacity, self.tokens + new_tokens)
