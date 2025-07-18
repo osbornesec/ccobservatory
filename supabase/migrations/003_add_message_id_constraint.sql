@@ -4,6 +4,14 @@
 -- Dependencies: 002_performance_indexes.sql
 
 -- =============================================================================
+-- TRANSACTION WRAPPER FOR ATOMICITY
+-- =============================================================================
+-- All DDL and DML operations are wrapped in a transaction to ensure atomicity.
+-- If any step fails, the entire migration is rolled back to maintain consistency.
+
+BEGIN;
+
+-- =============================================================================
 -- ADD message_id COLUMN TO MESSAGES TABLE
 -- =============================================================================
 
@@ -20,14 +28,6 @@ ADD COLUMN IF NOT EXISTS message_id TEXT;
 ALTER TABLE messages 
 ADD CONSTRAINT messages_message_id_unique UNIQUE (message_id);
 
--- =============================================================================
--- CREATE COMPOSITE UNIQUE CONSTRAINT FOR EXTRA SAFETY
--- =============================================================================
-
--- Create composite unique constraint on (conversation_id, message_id, timestamp)
--- This provides extra safety against duplicates and supports efficient queries
-CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_conversation_message_timestamp_unique
-    ON messages(conversation_id, message_id, timestamp);
 
 -- =============================================================================
 -- UPDATE EXISTING RECORDS (if any exist)
@@ -59,4 +59,11 @@ ALTER COLUMN message_id SET NOT NULL;
 
 COMMENT ON COLUMN messages.message_id IS 'Unique message identifier from source JSONL data for idempotency';
 COMMENT ON CONSTRAINT messages_message_id_unique IS 'Prevents duplicate messages on retries';
-COMMENT ON INDEX idx_messages_conversation_message_timestamp_unique IS 'Composite unique constraint for message deduplication and efficient queries';
+
+-- =============================================================================
+-- COMMIT TRANSACTION
+-- =============================================================================
+-- If we reach this point, all operations succeeded and changes are committed.
+-- PostgreSQL will automatically rollback on any error before this point.
+
+COMMIT;
