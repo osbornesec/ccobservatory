@@ -9,12 +9,25 @@ import time
 
 
 class TokenBucketRateLimiter:
-    """Token bucket rate limiter for WebSocket broadcasting"""
-    
-    def __init__(self, capacity: int, refill_rate: float):
+    """Token bucket rate limiter for WebSocket broadcasting.
+
+    Args:
+        capacity: Maximum number of tokens in the bucket
+        refill_rate: Rate at which tokens are replenished (tokens per second)
+
+    Raises:
+        ValueError: If capacity <= 0 or refill_rate <= 0
+    """
+
+    def __init__(self, capacity: int, refill_rate: float) -> None:
+        if capacity <= 0:
+            raise ValueError("Capacity must be greater than 0")
+        if refill_rate <= 0:
+            raise ValueError("Refill rate must be greater than 0")
+
         self.capacity = capacity
         self.refill_rate = refill_rate
-        self.tokens = capacity
+        self.tokens = float(capacity)
         self.last_refill = time.time()
     
 import threading
