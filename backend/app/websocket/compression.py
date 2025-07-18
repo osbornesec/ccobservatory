@@ -19,11 +19,19 @@ class MessageCompressor:
     
     def compress(self, message: str) -> bytes:
         """Compress message using zlib"""
-        return zlib.compress(message.encode(), self.compression_level)
-    
+        try:
+            return zlib.compress(message.encode(), self.compression_level)
+        except zlib.error as e:
+            logger.error(f"Compression failed: {e}")
+            return message.encode()  # Return uncompressed as fallback
+
     def decompress(self, compressed_data: bytes) -> str:
         """Decompress message using zlib"""
-        return zlib.decompress(compressed_data).decode()
+        try:
+            return zlib.decompress(compressed_data).decode()
+        except (zlib.error, UnicodeDecodeError) as e:
+            logger.error(f"Decompression failed: {e}")
+            raise ValueError("Invalid compressed data") from e
     
     def calculate_compression_ratio(self, original: str, compressed: bytes) -> float:
         """Calculate compression ratio"""
