@@ -1,5 +1,8 @@
 # Supabase Configuration for Claude Code Observatory
 # This file configures the local Supabase development environment
+# Official Supabase CLI configuration format
+
+project_id = "znznsjgqbnljgpffalwi"
 
 [api]
 enabled = true
@@ -10,22 +13,11 @@ max_rows = 1000
 
 [auth]
 enabled = true
-port = 54320
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:5173", "http://localhost:8000"]
-jwt_expiry = 3600
-refresh_token_rotation_enabled = true
-security_update_password_require_reauthentication = true
-enable_signup = true
-enable_confirmations = false
-
-[auth.email]
-enabled = true
-double_confirm_changes = true
-enable_confirmations = false
-
-[auth.sms]
-enabled = false
+jwt_expiry = 900  # 15 minutes for better security with sensitive conversation data
+enable_refresh_token_rotation = true
+enable_signup = false  # Disable public signup for controlled access to conversation monitoring
 
 [auth.external.github]
 enabled = false
@@ -35,9 +27,7 @@ enabled = false
 
 [db]
 port = 54322
-shadow_port = 54320
 major_version = 15
-max_connections = 100
 
 [db.pooler]
 enabled = false
@@ -47,101 +37,17 @@ max_client_conn = 100
 
 [realtime]
 enabled = true
-port = 54323
-tenant_id = "realtime-dev"
 
 [storage]
 enabled = true
-port = 54324
 file_size_limit = "50MiB"
-image_transformation = true
-bucket_name = "cco-storage"
+image_transformation = { enabled = true }
 
-[functions]
-enabled = false
-port = 54325
-
-[studio]
-enabled = true
-port = 54326
-
-[edge_runtime]
-enabled = false
-port = 54327
-
-# Dashboard configuration
-[dashboard]
-port = 54323
-username = "supabase"
-password = "this_password_is_insecure_and_should_be_updated"
-
-# Email configuration for local development
 [inbucket]
 enabled = true
 port = 54324
 smtp_port = 54325
 pop3_port = 54326
 
-# Analytics
 [analytics]
-enabled = false
-port = 54327
-
-# Local development settings
-[local]
-# Database settings
-database_url = "postgresql://postgres:postgres@localhost:54322/postgres"
-database_max_connections = 100
-
-# File paths
-schema_dir = "supabase/migrations"
-seed_data_file = "supabase/seed.sql"
-functions_dir = "supabase/functions"
-
-# Development features
-auto_migrations = true
-generate_types = true
-types_output = "../frontend/src/lib/database.types.ts"
-
-# Environment variables
-[env]
-SUPABASE_AUTH_ADMIN_USER_EMAIL = "admin@localhost"
-SUPABASE_AUTH_ADMIN_USER_PASSWORD = "admin123"
-SUPABASE_DB_PASSWORD = "postgres"
-POSTGRES_PASSWORD = "postgres"
-
-# Project configuration
-[project]
-name = "claude-code-observatory"
-region = "us-east-1"
-
-# Custom settings for Claude Code Observatory
-[cco]
-# Performance settings
-max_message_length = 1000000  # 1MB
-max_messages_per_conversation = 50000
-bulk_insert_batch_size = 1000
-
-# Search settings
-search_results_limit = 100
-search_timeout_ms = 5000
-full_text_search_enabled = true
-
-# Analytics settings
-analytics_materialized_view_refresh_interval = "1 hour"
-performance_monitoring_enabled = true
-slow_query_threshold_ms = 1000
-
-# Real-time settings
-realtime_subscription_limit = 1000
-realtime_message_throttle_ms = 100
-
-# Security settings
-row_level_security_enabled = true
-audit_logging_enabled = true
-sensitive_data_masking = true
-
-# File monitoring settings
-file_watch_poll_interval_ms = 1000
-file_processing_batch_size = 100
-max_file_size_mb = 100
+enabled = true  # Enable Supabase analytics for built-in monitoring capabilities

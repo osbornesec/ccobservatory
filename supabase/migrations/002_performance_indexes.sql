@@ -166,10 +166,11 @@ CREATE INDEX IF NOT EXISTS idx_conversations_large
     ON conversations(message_count DESC, project_id) 
     WHERE message_count > 100;
 
--- Index for recent tool usage
+-- Index for recent tool usage (without WHERE clause for wider performance benefits)
+-- Note: Removed WHERE clause with NOW() as it's not immutable and causes build errors
+-- This index will still accelerate queries for recent data since it's ordered by started_at DESC
 CREATE INDEX IF NOT EXISTS idx_recent_tool_usage 
-    ON tool_calls(started_at DESC, tool_name) 
-    WHERE started_at >= (NOW() - interval '7 days');
+    ON tool_calls(started_at DESC, tool_name);
 
 -- Index for error tracking
 CREATE INDEX IF NOT EXISTS idx_tool_errors 
@@ -216,8 +217,8 @@ COMMENT ON INDEX idx_projects_settings_gin IS 'Enables efficient queries on proj
 CREATE OR REPLACE VIEW index_usage_stats AS
 SELECT 
     schemaname,
-    tablename,
-    indexname,
+    relname as tablename,
+    indexrelname as indexname,
     idx_tup_read,
     idx_tup_fetch,
     idx_scan,

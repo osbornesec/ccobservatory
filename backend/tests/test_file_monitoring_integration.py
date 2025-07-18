@@ -206,6 +206,7 @@ class TestFileMonitoringIntegration:
         # Create test conversation data
         conversation_data = ConversationData(
             project_id=test_project_setup["id"],
+            file_path="/test/integration/conversation.jsonl",
             session_id="test-session-123",
             title="Test Conversation",
             message_count=2,

@@ -151,6 +151,7 @@ class ConversationData(ContractBase):
         default=None, description="Database-generated primary key"
     )
     project_id: UUID = Field(..., description="Foreign key to projects table")
+    file_path: str = Field(..., description="Absolute path to the JSONL conversation file")
     session_id: str = Field(..., description="Claude Code session identifier")
     title: Optional[str] = Field(
         default=None, description="Conversation title (may be derived)"
