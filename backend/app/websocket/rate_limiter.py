@@ -3,11 +3,20 @@ Rate limiting for WebSocket broadcasting.
 
 This module provides token bucket rate limiting functionality for WebSocket
 communications, preventing client overload by controlling message throughput.
+
+The TokenBucketRateLimiter class implements a thread-safe token bucket algorithm
+that allows for smooth rate limiting with burst capability up to the bucket capacity.
+
+Example:
+    >>> limiter = TokenBucketRateLimiter(capacity=10, refill_rate=1.0)
+    >>> if limiter.allow_request():
+    ...     # Process request
+    ...     pass
 """
 
 import time
-
-
+import threading
+from typing import Optional
 class TokenBucketRateLimiter:
     """Token bucket rate limiter for WebSocket broadcasting.
 
