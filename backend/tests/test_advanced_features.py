@@ -445,16 +445,19 @@ class WebSocketServer:
             if message:
                 await self._send_to_all_clients(message.content)
     
-    async def broadcast_persistent(self, message: str, channel: str):
-        """Broadcast message with persistence"""
-        if self.persistence:
-            persisted_msg = PersistedMessage(
-                id=f"msg_{int(time.time())}",
-                content=message,
-                timestamp=time.time(),
-                channel=channel
-            )
-            self.persistence.persist_message(persisted_msg)
++from datetime import datetime, timezone, timedelta
+
+     async def broadcast_persistent(self, message: str, channel: str):
+         """Broadcast message with persistence"""
+         if self.persistence:
+             persisted_msg = PersistedMessage(
+                 id=f"msg_{int(time.time())}",
+                 content=message,
+-                timestamp=time.time(),
++                timestamp=datetime.now(timezone.utc),
+                 channel=channel
+             )
+             self.persistence.persist_message(persisted_msg)
     
     async def handle_client_reconnection(self, client, channel: str):
         """Handle client reconnection and send persisted messages"""
